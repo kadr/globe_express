@@ -1,0 +1,26 @@
+services:
+  db:
+    image: postgres:18.4-bookworm
+    environment:
+      POSTGRES_USER: globe
+      POSTGRES_PASSWORD: express
+      POSTGRES_DB: globe_express
+    volumes:
+      - pg_data:/var/lib/postgresql/18/data
+    ports:
+      - "5433:5432"
+
+  travaler-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    command: ["/bin/sh", "-c", "app/bin/travaler-app"]
+    ports:
+      - "8000:80"
+    restart: unless-stopped
+    depends_on:
+      - db
+
+volumes:
+  pg_data:

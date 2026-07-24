@@ -1,0 +1,1 @@
+package travaler_domain_models
