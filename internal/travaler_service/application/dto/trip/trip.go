@@ -10,6 +10,7 @@ type TripDTO struct {
 	ToCity        string    `json:"to_city"`
 	DepartureDate time.Time `json:"departure_date"`
 	ArrivalDate   time.Time `json:"arrival_date"`
+	Status        string    `json:"status"`
 	MaxWeightKG   float64   `json:"max_weight_kg"`
 	MaxSizeCM3    float64   `json:"max_size_cm3"`
 	CreatedAt     string    `json:"created_at"`

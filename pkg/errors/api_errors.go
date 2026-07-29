@@ -1,9 +1,11 @@
-package errors
+package api_errors
 
 import "errors"
 
 var (
-	BadRequestError     = errors.New("Incorrect input data")
-	InternalServerError = errors.New("Internal Server Erorr")
-	NotFound            = errors.New("Record not found")
+	ErrorBadRequest      = errors.New("incorrect input data")
+	ErrorInternalServer  = errors.New("internal Server Erorr")
+	ErrorNotFound        = errors.New("record not found")
+	ErrorIncorrectStatus = errors.New("incorrect status")
+	ErrorCanNotCancel    = errors.New("can't cancel ongoing or completed trip")
 )

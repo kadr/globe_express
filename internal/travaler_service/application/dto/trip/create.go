@@ -16,17 +16,21 @@ type CreateDTO struct {
 	ArrivalDate   time.Time `json:"arrival_date"`
 	MaxWeightKG   float64   `json:"max_weight_kg"`
 	MaxSizeCM3    float64   `json:"max_size_cm3"`
+	Status        *string   `json:"status"`
 }
 
-func ToDomainModel(schema CreateDTO) (domain_models.TripModel, error) {
-	// TODO: Remove travelerID
-	travelerID, _ := uuid.Parse("ffaf8a49-d4a9-40ab-95c2-869b7f77f8c8")
+func ToCreateDomainModel(schema CreateDTO, userID uuid.UUID) (domain_models.TripModel, error) {
+	newStatus := ""
+	if schema.Status != nil {
+		newStatus = *schema.Status
+	}
 	tripModel, err := domain_models.NewUninitializedTrip(
-		travelerID,
+		userID,
 		schema.FromCountry,
 		schema.FromCity,
 		schema.ToCountry,
 		schema.ToCity,
+		newStatus,
 		schema.DepartureDate,
 		schema.ArrivalDate,
 		schema.MaxWeightKG,
@@ -37,27 +41,4 @@ func ToDomainModel(schema CreateDTO) (domain_models.TripModel, error) {
 	}
 
 	return tripModel, nil
-}
-
-func ToDTO(schema domain_models.TripModel) TripDTO {
-	tripDTO := TripDTO{
-		schema.ID.String(),
-		schema.FromCountry,
-		schema.FromCity,
-		schema.ToCountry,
-		schema.ToCity,
-		schema.DepartureDate,
-		schema.ArrivalDate,
-		schema.MaxWeightKG,
-		schema.MaxSizeCM3,
-		schema.CreatedAt.Local().String(),
-		nil,
-	}
-	if schema.UpdatedAt != nil {
-		updateAt := *schema.UpdatedAt
-		strUpdateAt := updateAt.Local().String()
-		tripDTO.UpdatedAt = &strUpdateAt
-	}
-
-	return tripDTO
 }

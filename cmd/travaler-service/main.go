@@ -11,6 +11,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/kadr/globe_express/config"
+	middleware "github.com/kadr/globe_express/internal/shared/auth"
 	api_handlers "github.com/kadr/globe_express/internal/travaler_service/application/handlers"
 	trip_repository "github.com/kadr/globe_express/internal/travaler_service/domain/repository"
 	trip_service "github.com/kadr/globe_express/internal/travaler_service/domain/service"
@@ -35,6 +36,13 @@ func main() {
 	tripService := trip_service.NewService(tripRepo, logger)
 	api := api_handlers.NewTravalerAPI(tripService, logger)
 	logger.Info("register all handlers")
+	api.RegisterMiddleware(
+		middleware.RequestID,
+		middleware.Logger(logger),
+		middleware.Recovery,
+		middleware.GetUserFromReq(cfg),
+		middleware.ExecuteResponse,
+	)
 	api.RegisterHandlers()
 	logger.Info("starting http server")
 	api.Start(cfg.HttpAddress)

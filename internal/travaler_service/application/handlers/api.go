@@ -26,7 +26,7 @@ func (ta *TravalerAPI) RegisterMiddleware(middlewares ...fiber.Handler) {
 }
 
 func (ta *TravalerAPI) RegisterHandlers() {
-	trip_handlers.NewTripAPIHandler(ta.tripService, ta.app).RegisterHandlers()
+	trip_handlers.NewTripAPIHandler(ta.tripService, ta.app, ta.logger).RegisterHandlers()
 }
 
 func (ta *TravalerAPI) Start(address string) error {

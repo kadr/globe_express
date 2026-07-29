@@ -10,6 +10,7 @@ type AppConfig struct {
 	DBURL       string `env:"DB_URL"`
 	DBTimeout   int    `env:"DB_TIMEOUT"`
 	HttpAddress string `env:"HTTP_ADDRESS"`
+	JWTSecret   string `env:"JWT_SECRET"`
 }
 
 func MustLoad() *AppConfig {
