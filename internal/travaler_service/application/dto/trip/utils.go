@@ -31,26 +31,7 @@ func ToDTO(schema trip_service.TripModel) TripDTO {
 func ToDTOList(schema []trip_service.TripModel) []TripDTO {
 	var results []TripDTO
 	for _, trip := range schema {
-		dto := TripDTO{
-			trip.ID.String(),
-			trip.FromCountry,
-			trip.FromCity,
-			trip.ToCountry,
-			trip.ToCity,
-			trip.DepartureDate,
-			trip.ArrivalDate,
-			*trip.Status,
-			trip.MaxWeightKG,
-			trip.MaxSizeCM3,
-			trip.CreatedAt.Local().String(),
-			nil,
-		}
-		if trip.UpdatedAt != nil {
-			updateAt := *trip.UpdatedAt
-			strUpdateAt := updateAt.Local().String()
-			dto.UpdatedAt = &strUpdateAt
-		}
-		results = append(results, dto)
+		results = append(results, ToDTO(trip))
 	}
 
 	return results
