@@ -3,7 +3,7 @@ package travaler_api_trip_dto
 import (
 	"time"
 
-	domain_models "github.com/kadr/globe_express/internal/travaler_service/domain/models"
+	service "github.com/kadr/globe_express/internal/travaler_service/domain/service/trip"
 )
 
 type UpdateDTO struct {
@@ -18,21 +18,18 @@ type UpdateDTO struct {
 	MaxSizeCM3    *float64   `json:"max_size_cm3"`
 }
 
-func ToUpdateDomainModel(schema UpdateDTO) (domain_models.TripUpdateModel, error) {
-	tripModel, err := domain_models.NewTripUpdateModel(
+func ToUpdateModel(schema UpdateDTO) service.TripUpdateModel {
+	tripModel := service.TripUpdateModel{
 		schema.FromCountry,
 		schema.FromCity,
 		schema.ToCountry,
 		schema.ToCity,
-		schema.Status,
 		schema.DepartureDate,
 		schema.ArrivalDate,
+		schema.Status,
 		schema.MaxWeightKG,
 		schema.MaxSizeCM3,
-	)
-	if err != nil {
-		return domain_models.TripUpdateModel{}, err
 	}
 
-	return tripModel, nil
+	return tripModel
 }

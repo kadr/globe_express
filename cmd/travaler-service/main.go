@@ -14,7 +14,7 @@ import (
 	middleware "github.com/kadr/globe_express/internal/shared/auth"
 	api_handlers "github.com/kadr/globe_express/internal/travaler_service/application/handlers"
 	trip_repository "github.com/kadr/globe_express/internal/travaler_service/domain/repository"
-	trip_service "github.com/kadr/globe_express/internal/travaler_service/domain/service"
+	trip_service "github.com/kadr/globe_express/internal/travaler_service/domain/service/trip"
 )
 
 func main() {

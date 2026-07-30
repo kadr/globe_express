@@ -1,10 +1,10 @@
 package travaler_api_trip_dto
 
 import (
-	domain_models "github.com/kadr/globe_express/internal/travaler_service/domain/models"
+	trip_service "github.com/kadr/globe_express/internal/travaler_service/domain/service/trip"
 )
 
-func ToDTO(schema domain_models.TripModel) TripDTO {
+func ToDTO(schema trip_service.TripModel) TripDTO {
 	tripDTO := TripDTO{
 		schema.ID.String(),
 		schema.FromCountry,
@@ -13,7 +13,7 @@ func ToDTO(schema domain_models.TripModel) TripDTO {
 		schema.ToCity,
 		schema.DepartureDate,
 		schema.ArrivalDate,
-		schema.Status,
+		*schema.Status,
 		schema.MaxWeightKG,
 		schema.MaxSizeCM3,
 		schema.CreatedAt.Local().String(),
@@ -28,7 +28,7 @@ func ToDTO(schema domain_models.TripModel) TripDTO {
 	return tripDTO
 }
 
-func ToDTOList(schema []domain_models.TripModel) []TripDTO {
+func ToDTOList(schema []trip_service.TripModel) []TripDTO {
 	var results []TripDTO
 	for _, trip := range schema {
 		dto := TripDTO{
@@ -39,7 +39,7 @@ func ToDTOList(schema []domain_models.TripModel) []TripDTO {
 			trip.ToCity,
 			trip.DepartureDate,
 			trip.ArrivalDate,
-			trip.Status,
+			*trip.Status,
 			trip.MaxWeightKG,
 			trip.MaxSizeCM3,
 			trip.CreatedAt.Local().String(),

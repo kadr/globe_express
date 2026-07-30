@@ -23,12 +23,11 @@ func (tah *TripAPIHandler) Update(c fiber.Ctx) error {
 		tah.logger.Error("api update trip error: %w", err)
 		return err
 	}
-	schema, err := dto.ToUpdateDomainModel(updateDTO)
 	if err != nil {
 		tah.logger.Error("api update trip error: %w", err)
 		return err
 	}
-	trip, err := tah.travalerService.Update(ctx, tripID, schema)
+	trip, err := tah.travalerService.Update(ctx, tripID, dto.ToUpdateModel(updateDTO))
 	if err != nil {
 		tah.logger.Error("api update trip error: %w", err)
 		return err

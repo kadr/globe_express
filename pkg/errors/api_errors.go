@@ -8,4 +8,5 @@ var (
 	ErrorNotFound        = errors.New("record not found")
 	ErrorIncorrectStatus = errors.New("incorrect status")
 	ErrorCanNotCancel    = errors.New("can't cancel ongoing or completed trip")
+	ErrorFieldValidation = errors.New("validation error")
 )

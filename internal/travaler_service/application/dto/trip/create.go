@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	domain_models "github.com/kadr/globe_express/internal/travaler_service/domain/models"
+	service "github.com/kadr/globe_express/internal/travaler_service/domain/service/trip"
 )
 
 type CreateDTO struct {
@@ -19,26 +19,22 @@ type CreateDTO struct {
 	Status        *string   `json:"status"`
 }
 
-func ToCreateDomainModel(schema CreateDTO, userID uuid.UUID) (domain_models.TripModel, error) {
-	newStatus := ""
-	if schema.Status != nil {
-		newStatus = *schema.Status
-	}
-	tripModel, err := domain_models.NewUninitializedTrip(
+func ToCreateModel(schema CreateDTO, userID uuid.UUID) service.TripModel {
+	tripModel := service.TripModel{
+		nil,
 		userID,
 		schema.FromCountry,
 		schema.FromCity,
 		schema.ToCountry,
 		schema.ToCity,
-		newStatus,
 		schema.DepartureDate,
 		schema.ArrivalDate,
+		schema.Status,
 		schema.MaxWeightKG,
 		schema.MaxSizeCM3,
-	)
-	if err != nil {
-		return domain_models.TripModel{}, err
+		nil,
+		nil,
 	}
 
-	return tripModel, nil
+	return tripModel
 }

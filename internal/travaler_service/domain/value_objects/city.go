@@ -1,13 +1,17 @@
 package travaler_domain_valueobjects
 
-import "errors"
+import (
+	"fmt"
+
+	api_errors "github.com/kadr/globe_express/pkg/errors"
+)
 
 func NewCity(city string) (string, error) {
 	if len(city) < 3 {
-		return "", errors.New("city must contains more than 5 leters")
+		return "", fmt.Errorf("city must contains more than 3 leters. %w", api_errors.ErrorFieldValidation)
 	}
 	if len(city) > 20 {
-		return "", errors.New("city must contains less than 20 leters")
+		return "", fmt.Errorf("city must contains less than 20 leters. %w", api_errors.ErrorFieldValidation)
 	}
 	return city, nil
 }

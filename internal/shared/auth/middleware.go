@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"errors"
 	"log/slog"
 
 	"github.com/gofiber/fiber/v3"
@@ -77,19 +78,22 @@ func ExecuteResponse(c fiber.Ctx) error {
 	err := c.Next()
 	logger := c.Value("logger").(*slog.Logger)
 	if err != nil {
-		switch err {
-		case api_errors.ErrorNotFound:
+		switch {
+		case errors.Is(err, api_errors.ErrorNotFound):
 			logger.Warn("Not found record")
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "not found"})
-		case api_errors.ErrorBadRequest:
+		case errors.Is(err, api_errors.ErrorBadRequest):
 			logger.Warn(err.Error())
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
-		case api_errors.ErrorIncorrectStatus:
+		case errors.Is(err, api_errors.ErrorIncorrectStatus):
+			logger.Warn(err.Error())
+			return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{"error": err.Error()})
+		case errors.Is(err, api_errors.ErrorCanNotCancel):
 			logger.Warn(err.Error())
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
-		case api_errors.ErrorCanNotCancel:
+		case errors.Is(err, api_errors.ErrorFieldValidation):
 			logger.Warn(err.Error())
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+			return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{"error": err.Error()})
 		default:
 			logger.Warn(err.Error())
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Internal Server Error"})
