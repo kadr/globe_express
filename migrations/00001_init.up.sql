@@ -56,7 +56,7 @@ CREATE TABLE products (
     currency VARCHAR(3) DEFAULT 'USD',
     shop_url VARCHAR(500),
     shop_name VARCHAR(255),
-    image_urls TEXT[],
+    image_urls TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
