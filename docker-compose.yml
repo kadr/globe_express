@@ -22,5 +22,16 @@ services:
     depends_on:
       - db
 
+  order-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    command: ["/bin/sh", "-c", "app/bin/order-app"]
+    ports:
+      - "8001:80"
+    restart: unless-stopped
+    depends_on:
+      - db
 volumes:
   pg_data:

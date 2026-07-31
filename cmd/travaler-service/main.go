@@ -45,7 +45,7 @@ func main() {
 	)
 	api.RegisterHandlers()
 	logger.Info("starting http server")
-	api.Start(cfg.HttpAddress)
+	api.Start(cfg.HttpAddressTravaler)
 	<-ctx.Done()
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()

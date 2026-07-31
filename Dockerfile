@@ -25,7 +25,8 @@ RUN go mod download
 # Копируем исходный код
 COPY . .
 
-RUN go build -ldflags="-w -s" -o app/bin/travaler-app ./cmd/travaler-service/main.go
+RUN go build -ldflags="-w -s" -o app/bin/travaler-app ./cmd/travaler-service/main.go && \
+  go build -ldflags="-w -s" -o app/bin/order-app ./cmd/order-service/main.go
 
 # Финальный этап
 FROM alpine:latest AS final
@@ -40,6 +41,7 @@ WORKDIR /app
 
 # Бинарник и config/users.json для логина (путь относительно cwd: config/users.json)
 COPY --from=builder /app/bin/travaler-app /app/bin/travaler-app
+COPY --from=builder /app/bin/order-app /app/bin/order-app
 
 # Смена владельца
 RUN chown -R appuser:appuser /app
@@ -51,4 +53,4 @@ USER appuser
 EXPOSE 80
 
 # Запускаем приложение
-CMD ["/app/bin/travaler-app"]
+CMD ["/app/bin/travaler-app", "/app/bin/order-app"]
