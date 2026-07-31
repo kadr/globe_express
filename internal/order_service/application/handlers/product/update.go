@@ -3,7 +3,7 @@ package order_api_product_handlers
 import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
-	dto "github.com/kadr/globe_express/internal/travaler_service/application/dto/trip"
+	dto "github.com/kadr/globe_express/internal/order_service/application/dto/product"
 )
 
 func (pah *ProductAPIHandler) Update(c fiber.Ctx) error {
@@ -27,10 +27,10 @@ func (pah *ProductAPIHandler) Update(c fiber.Ctx) error {
 		pah.logger.Error("api update product error: %w", err)
 		return err
 	}
-	trip, err := pah.productService.Update(ctx, productID, dto.ToUpdateModel(updateDTO))
+	product, err := pah.productService.Update(ctx, productID, dto.ToUpdateModel(updateDTO))
 	if err != nil {
 		pah.logger.Error("api update product error: %w", err)
 		return err
 	}
-	return c.Status(fiber.StatusOK).JSON(dto.ToDTO(trip))
+	return c.Status(fiber.StatusOK).JSON(dto.ToDTO(product))
 }

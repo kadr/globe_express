@@ -16,7 +16,7 @@ func (pah *ProductAPIHandler) Delete(c fiber.Ctx) error {
 		pah.logger.Error("api Delete product error: %w", err)
 		return err
 	}
-	err := pah.productService.Cancel(ctx, productID)
+	err := pah.productService.Delete(ctx, productID)
 	if err != nil {
 		pah.logger.Error("api Delete product error: %w", err)
 		return err

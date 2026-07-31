@@ -49,7 +49,7 @@ CREATE INDEX idx_orders_pickup_location ON orders(pickup_country, pickup_city);
 
 CREATE TABLE products (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+    order_id UUID NULL REFERENCES orders(id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
     description TEXT,
     price DECIMAL(10,2),

@@ -25,7 +25,7 @@ type ProductResult struct {
 	Currency    string     `db:"currency"`
 	ShopUrl     string     `db:"shop_url"`
 	ShopName    string     `db:"shop_name"`
-	ImageUrls   *[]string  `db:"image_urls"`
+	ImageUrls   *string    `db:"image_urls"`
 	CreatedAt   time.Time  `db:"created_at"`
 	UpdatedAt   *time.Time `db:"updated_at"`
 }
@@ -40,10 +40,9 @@ func NewRepository(db *sqlx.DB, timeout int, logger *slog.Logger) *ProductReposi
 	return &ProductRepository{db: db, timeout: timeout, logger: logger}
 }
 
-func (tr *ProductRepository) Create(ctx context.Context, schema domain_models.ProductModel) (domain_models.ProductModel, error) {
-	ctx, cancel := context.WithTimeout(ctx, time.Second*time.Duration(tr.timeout))
+func (pr *ProductRepository) Create(ctx context.Context, schema domain_models.ProductModel) (domain_models.ProductModel, error) {
+	ctx, cancel := context.WithTimeout(ctx, time.Second*time.Duration(pr.timeout))
 	defer cancel()
-	var result ProductResult
 	insertFields := []string{"name", "price", "currency", "shop_url", "shop_name"}
 	args := map[string]any{"name": schema.Name, "price": schema.Price, "currency": schema.Currency, "shop_url": schema.ShopUrl, "shop_name": schema.ShopName}
 	if schema.OrderID != nil {
@@ -56,7 +55,7 @@ func (tr *ProductRepository) Create(ctx context.Context, schema domain_models.Pr
 	}
 	if schema.ImageUrls != nil {
 		insertFields = append(insertFields, "image_urls")
-		args["image_urls"] = *schema.ImageUrls
+		args["image_urls"] = strings.Join(*schema.ImageUrls, ",")
 	}
 
 	insertValueFields := []string{}
@@ -68,61 +67,56 @@ func (tr *ProductRepository) Create(ctx context.Context, schema domain_models.Pr
 	VALUES (%s) 
 	RETURNING id,order_id,name,description,price,currency,shop_url,shop_name,image_urls,created_at,updated_at
 	`, strings.Join(insertFields, ","), strings.Join(insertValueFields, ","))
-	rows, err := tr.db.NamedQueryContext(ctx, stmt, args)
+	rows, err := pr.db.NamedQueryContext(ctx, stmt, args)
 	if err != nil {
-		tr.logger.Error(err.Error())
-		return domain_models.ProductModel{}, fmt.Errorf("product  repository, update err: %w", err)
+		pr.logger.Error(err.Error())
+		return domain_models.ProductModel{}, fmt.Errorf("product  repository, create err: %w", err)
 	}
 	defer rows.Close()
 
+	var result ProductResult
 	if rows.Next() {
-		var result ProductResult
 		err := rows.StructScan(&result)
 		if err != nil {
-			tr.logger.Error(err.Error())
-			return domain_models.ProductModel{}, fmt.Errorf("product  repository, update err: %w", err)
+			pr.logger.Error(err.Error())
+			return domain_models.ProductModel{}, fmt.Errorf("product  repository, create err: %w", err)
 		}
-
 	}
 	return toDomainModel(result), nil
 }
 
-func (tr *ProductRepository) Update(ctx context.Context, productID uuid.UUID, schema domain_models.ProductUpdateModel) (domain_models.ProductModel, error) {
-	ctx, cancel := context.WithTimeout(ctx, time.Second*time.Duration(tr.timeout))
+func (pr *ProductRepository) Update(ctx context.Context, productID uuid.UUID, schema domain_models.ProductUpdateModel) (domain_models.ProductModel, error) {
+	ctx, cancel := context.WithTimeout(ctx, time.Second*time.Duration(pr.timeout))
 	defer cancel()
 	var setParts []string
 	args := map[string]interface{}{"id": productID}
 	if schema.Name != nil {
-		setParts = append(setParts, "name")
+		setParts = append(setParts, "name=:name")
 		args["name"] = *schema.Name
 	}
 	if schema.Price != nil {
-		setParts = append(setParts, "price")
+		setParts = append(setParts, "price=:price")
 		args["price"] = *schema.Price
 	}
 	if schema.Currency != nil {
-		setParts = append(setParts, "currency")
+		setParts = append(setParts, "currency=:currency")
 		args["currency"] = *schema.Currency
 	}
 	if schema.ShopUrl != nil {
-		setParts = append(setParts, "shop_url")
+		setParts = append(setParts, "shop_url=:shop_url")
 		args["shop_url"] = *schema.ShopUrl
 	}
 	if schema.ShopName != nil {
-		setParts = append(setParts, "shop_name")
+		setParts = append(setParts, "shop_name=:shop_name")
 		args["shop_name"] = *schema.ShopName
 	}
-	if schema.OrderID != nil {
-		setParts = append(setParts, "order_id")
-		args["order_id"] = *schema.OrderID
-	}
 	if schema.Description != nil {
-		setParts = append(setParts, "description")
+		setParts = append(setParts, "description=:description")
 		args["description"] = *schema.Description
 	}
 	if schema.ImageUrls != nil {
-		setParts = append(setParts, "image_urls")
-		args["image_urls"] = *schema.ImageUrls
+		setParts = append(setParts, "image_urls=:image_urls")
+		args["image_urls"] = strings.Join(*schema.ImageUrls, ",")
 	}
 
 	stmt := fmt.Sprintf(
@@ -131,13 +125,14 @@ func (tr *ProductRepository) Update(ctx context.Context, productID uuid.UUID, sc
 		RETURNING id,order_id,name,description,price,currency,shop_url,shop_name,image_urls,created_at,updated_at`,
 		strings.Join(setParts, ","),
 	)
-	rows, err := tr.db.NamedQueryContext(ctx, stmt, args)
+	pr.logger.Debug("stmt", stmt)
+	rows, err := pr.db.NamedQueryContext(ctx, stmt, args)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			tr.logger.Warn(err.Error())
+			pr.logger.Warn(err.Error())
 			return domain_models.ProductModel{}, fmt.Errorf("product  repository, update record no found: %w", api_errors.ErrorNotFound)
 		}
-		tr.logger.Error(err.Error())
+		pr.logger.Error(err.Error())
 		return domain_models.ProductModel{}, fmt.Errorf("product  repository, update err: %w", err)
 	}
 	defer rows.Close()
@@ -146,7 +141,7 @@ func (tr *ProductRepository) Update(ctx context.Context, productID uuid.UUID, sc
 		var result ProductResult
 		err := rows.StructScan(&result)
 		if err != nil {
-			tr.logger.Error(err.Error())
+			pr.logger.Error(err.Error())
 			return domain_models.ProductModel{}, fmt.Errorf("product  repository, update err: %w", err)
 		}
 
@@ -155,18 +150,18 @@ func (tr *ProductRepository) Update(ctx context.Context, productID uuid.UUID, sc
 	return domain_models.ProductModel{}, fmt.Errorf("product  repository, update err: can't update record")
 }
 
-func (tr *ProductRepository) Delete(ctx context.Context, productID uuid.UUID) error {
-	ctx, cancel := context.WithTimeout(ctx, time.Second*time.Duration(tr.timeout))
+func (pr *ProductRepository) Delete(ctx context.Context, productID uuid.UUID) error {
+	ctx, cancel := context.WithTimeout(ctx, time.Second*time.Duration(pr.timeout))
 	defer cancel()
 	stmt := "DELETE FROM products WHERE id = $1"
 
-	res, err := tr.db.ExecContext(ctx, stmt, productID)
+	res, err := pr.db.ExecContext(ctx, stmt, productID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			tr.logger.Warn(err.Error())
+			pr.logger.Warn(err.Error())
 			return fmt.Errorf("product  repository, record no found: %w", api_errors.ErrorNotFound)
 		}
-		tr.logger.Error(err.Error())
+		pr.logger.Error(err.Error())
 		return fmt.Errorf("product  repository, Cancel err: %w", err)
 	}
 	count, err := res.RowsAffected()
@@ -174,62 +169,79 @@ func (tr *ProductRepository) Delete(ctx context.Context, productID uuid.UUID) er
 		return fmt.Errorf("product  repository, Cancel err: %w", err)
 	}
 	if count == 0 {
-		tr.logger.Warn("no rows found to delete")
+		pr.logger.Warn("no rows found to delete")
 	}
 
 	return nil
 }
 
-func (tr *ProductRepository) GetDetail(ctx context.Context, productID uuid.UUID) (domain_models.ProductModel, error) {
-	ctx, cancel := context.WithTimeout(ctx, time.Second*time.Duration(tr.timeout))
+func (pr *ProductRepository) GetDetail(ctx context.Context, productID uuid.UUID) (domain_models.ProductModel, error) {
+	ctx, cancel := context.WithTimeout(ctx, time.Second*time.Duration(pr.timeout))
 	defer cancel()
 	query := `
 	SELECT id,order_id,name,description,price,currency,shop_url,shop_name,image_urls,created_at,updated_at
 	FROM products WHERE id = $1 ORDER BY created_at DESC`
 
 	var result ProductResult
-	err := tr.db.GetContext(ctx, &result, query, productID)
+	err := pr.db.GetContext(ctx, &result, query, productID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			tr.logger.Warn(err.Error())
+			pr.logger.Warn(err.Error())
 			return domain_models.ProductModel{}, fmt.Errorf("product  repository, record no found: %w", api_errors.ErrorNotFound)
 		}
-		tr.logger.Error(err.Error())
+		pr.logger.Error(err.Error())
 		return domain_models.ProductModel{}, fmt.Errorf("product  repository, GetDetail err: %w", err)
 	}
 
 	return toDomainModel(result), nil
 }
 
-func (tr *ProductRepository) GetList(ctx context.Context, limit, offset int) ([]domain_models.ProductModel, error) {
-	ctx, cancel := context.WithTimeout(ctx, time.Second*time.Duration(tr.timeout))
+func (pr *ProductRepository) GetList(ctx context.Context, limit, offset int) ([]domain_models.ProductModel, error) {
+	ctx, cancel := context.WithTimeout(ctx, time.Second*time.Duration(pr.timeout))
 	defer cancel()
 	query := `
 	SELECT id,order_id,name,description,price,currency,shop_url,shop_name,image_urls,created_at,updated_at
 	FROM products ORDER BY created_at DESC LIMIT $1 OFFSET $2`
 
 	var results []ProductResult
-	err := tr.db.SelectContext(ctx, &results, query, limit, offset)
+	err := pr.db.SelectContext(ctx, &results, query, limit, offset)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			tr.logger.Warn(err.Error())
+			pr.logger.Warn(err.Error())
 			return []domain_models.ProductModel{}, nil
 		}
-		tr.logger.Error(err.Error())
+		pr.logger.Error(err.Error())
 		return []domain_models.ProductModel{}, fmt.Errorf("product  repository, GetList err: %w", err)
 	}
-
 	return toDomainModelList(results), nil
 }
 
 func toDomainModel(result ProductResult) domain_models.ProductModel {
-	return domain_models.ProductModel(result)
+	var images []string
+	if result.ImageUrls != nil {
+		for _, image := range strings.Split(*result.ImageUrls, ",") {
+			images = append(images, image)
+		}
+	}
+	return domain_models.ProductModel{
+		result.ID,
+		result.OrderID,
+		result.Name,
+		result.Description,
+		result.Price,
+		result.Currency,
+		result.ShopUrl,
+		result.ShopName,
+		&images,
+		result.CreatedAt,
+		result.UpdatedAt,
+	}
 }
 
-func toDomainModelList(product s []ProductResult) []domain_models.ProductModel {
+func toDomainModelList(products []ProductResult) []domain_models.ProductModel {
 	var results []domain_models.ProductModel
-	for _, res := range product s {
-		results = append(results, domain_models.ProductModel(res))
+	for _, res := range products {
+		results = append(results, toDomainModel(res))
 	}
 	return results
 }

@@ -17,10 +17,10 @@ func (pah *ProductAPIHandler) GetDetail(c fiber.Ctx) error {
 		pah.logger.Error("api GetDetail product error: %w", err)
 		return err
 	}
-	trip, err := pah.productService.GetDetail(ctx, productID)
+	product, err := pah.productService.GetDetail(ctx, productID)
 	if err != nil {
 		pah.logger.Error("api GetDetail product error: %w", err)
 		return err
 	}
-	return c.Status(fiber.StatusOK).JSON(dto.ToDTO(trip))
+	return c.Status(fiber.StatusOK).JSON(dto.ToDTO(product))
 }

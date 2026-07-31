@@ -5,8 +5,8 @@ import (
 	"fmt"
 )
 
-func (ts *ProductService) GetList(ctx context.Context, limit, offset int) ([]ProductModel, error) {
-	products, err := ts.repo.GetList(ctx, limit, offset)
+func (ps *ProductService) GetList(ctx context.Context, limit, offset int) ([]ProductModel, error) {
+	products, err := ps.repo.GetList(ctx, limit, offset)
 	if err != nil {
 		return []ProductModel{}, fmt.Errorf("product GetList service error: %w", err)
 	}

@@ -51,7 +51,7 @@ func NewService(repo ProductRepositoryIface, logger *slog.Logger) *ProductServic
 }
 
 func FromDomainModel(schema domain_models.ProductModel) ProductModel {
-	tripModel := ProductModel{
+	productModel := ProductModel{
 		&schema.ID,
 		schema.OrderID,
 		schema.Name,
@@ -65,25 +65,13 @@ func FromDomainModel(schema domain_models.ProductModel) ProductModel {
 		schema.UpdatedAt,
 	}
 
-	return tripModel
+	return productModel
 }
 
 func FromDomainModelList(result []domain_models.ProductModel) []ProductModel {
 	var results []ProductModel
 	for _, schema := range result {
-		results = append(results, ProductModel{
-			&schema.ID,
-			schema.OrderID,
-			schema.Name,
-			schema.Description,
-			schema.Price,
-			schema.Currency,
-			schema.ShopUrl,
-			schema.ShopName,
-			schema.ImageUrls,
-			&schema.CreatedAt,
-			schema.UpdatedAt,
-		})
+		results = append(results, FromDomainModel(schema))
 	}
 
 	return results

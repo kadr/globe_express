@@ -19,10 +19,10 @@ func (pah *ProductAPIHandler) GetList(c fiber.Ctx) error {
 	if o, err := strconv.Atoi(c.Query("offset")); err == nil {
 		offset = o
 	}
-	trips, err := pah.productService.GetList(ctx, limit, offset)
+	products, err := pah.productService.GetList(ctx, limit, offset)
 	if err != nil {
 		pah.logger.Error("api GetList product error: %w", err)
 		return err
 	}
-	return c.Status(fiber.StatusOK).JSON(dto.ToDTOList(trips))
+	return c.Status(fiber.StatusOK).JSON(dto.ToDTOList(products))
 }

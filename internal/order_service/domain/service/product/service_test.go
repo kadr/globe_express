@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	domain_models "github.com/kadr/globe_express/internal/travaler_service/domain/models"
+	domain_models "github.com/kadr/globe_express/internal/order_service/domain/models"
 	api_errors "github.com/kadr/globe_express/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -17,40 +17,30 @@ type MockTripRepository struct {
 	mock.Mock
 }
 
-func (m *MockTripRepository) Create(ctx context.Context, trip domain_models.TripModel) (domain_models.TripModel, error) {
+func (m *MockTripRepository) Create(ctx context.Context, trip domain_models.ProductModel) (domain_models.ProductModel, error) {
 	args := m.Called(ctx, trip)
-	return args.Get(0).(domain_models.TripModel), args.Error(1)
+	return args.Get(0).(domain_models.ProductModel), args.Error(1)
 }
 
-func (m *MockTripRepository) GetDetail(ctx context.Context, id uuid.UUID) (domain_models.TripModel, error) {
+func (m *MockTripRepository) GetDetail(ctx context.Context, id uuid.UUID) (domain_models.ProductModel, error) {
 	args := m.Called(ctx, id)
 	if args.Get(0) == nil {
-		return domain_models.TripModel{}, args.Error(1)
+		return domain_models.ProductModel{}, args.Error(1)
 	}
-	return args.Get(0).(domain_models.TripModel), args.Error(1)
+	return args.Get(0).(domain_models.ProductModel), args.Error(1)
 }
 
-func (m *MockTripRepository) GetActive(ctx context.Context) ([]domain_models.TripModel, error) {
-	args := m.Called(ctx)
-	return args.Get(0).([]domain_models.TripModel), args.Error(1)
-}
-
-func (m *MockTripRepository) GetCompleted(ctx context.Context) ([]domain_models.TripModel, error) {
-	args := m.Called(ctx)
-	return args.Get(0).([]domain_models.TripModel), args.Error(1)
-}
-
-func (m *MockTripRepository) GetList(ctx context.Context, limit, offset int) ([]domain_models.TripModel, error) {
+func (m *MockTripRepository) GetList(ctx context.Context, limit, offset int) ([]domain_models.ProductModel, error) {
 	args := m.Called(ctx, limit, offset)
-	return args.Get(0).([]domain_models.TripModel), args.Error(1)
+	return args.Get(0).([]domain_models.ProductModel), args.Error(1)
 }
 
-func (m *MockTripRepository) Update(ctx context.Context, id uuid.UUID, trip domain_models.TripUpdateModel) (domain_models.TripModel, error) {
+func (m *MockTripRepository) Update(ctx context.Context, id uuid.UUID, trip domain_models.ProductUpdateModel) (domain_models.ProductModel, error) {
 	args := m.Called(ctx, id, trip)
-	return args.Get(0).(domain_models.TripModel), args.Error(1)
+	return args.Get(0).(domain_models.ProductModel), args.Error(1)
 }
 
-func (m *MockTripRepository) Cancel(ctx context.Context, id uuid.UUID) error {
+func (m *MockTripRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	args := m.Called(ctx, id)
 	return args.Error(0)
 }
@@ -58,117 +48,211 @@ func (m *MockTripRepository) Cancel(ctx context.Context, id uuid.UUID) error {
 func TestCreate(t *testing.T) {
 	now := time.Now()
 
-	travelerID := uuid.MustParse("9b825b1d-c744-4ca3-bac8-4aa1b13a98d3")
-	tripID := uuid.MustParse("12345678-1234-1234-1234-123456789012")
-	incorrectStatus := "active"
+	orderID := uuid.MustParse("9b825b1d-c744-4ca3-bac8-4aa1b13a98d3")
+	links := []string{"https://some-link1.ru", "https://some-link2.ru"}
+	incorrectImages := []string{"some-link1.ru", "some-link2.ru"}
+	description := "Full desxcription"
 
 	tests := []struct {
 		name       string
-		inputTrip  TripModel
-		mockResult domain_models.TripModel
+		input      ProductModel
+		mockResult domain_models.ProductModel
 		mockErr    error
 		wantErr    bool
 	}{
 		{
-			name: "successful create",
-			inputTrip: TripModel{
-				TravelerID:    travelerID,
-				FromCountry:   "USA",
-				FromCity:      "New York",
-				ToCountry:     "UK",
-				ToCity:        "London",
-				DepartureDate: now,
-				ArrivalDate:   now.Add(24 * time.Hour),
+			name: "successful create without all fields",
+			input: ProductModel{
+				nil,
+				nil,
+				"Some product",
+				nil,
+				12.3,
+				"RUR",
+				"https://some-url.ru",
+				"Shop name",
+				nil,
+				nil,
+				nil,
 			},
-			mockResult: domain_models.TripModel{
-				ID:            tripID,
-				TravelerID:    travelerID,
-				FromCountry:   "USA",
-				FromCity:      "New York",
-				ToCountry:     "UK",
-				ToCity:        "London",
-				Status:        "planned",
-				DepartureDate: now,
-				ArrivalDate:   now.Add(24 * time.Hour),
-				CreatedAt:     now,
+			mockResult: domain_models.ProductModel{
+				uuid.New(),
+				nil,
+				"Some product",
+				nil,
+				12.3,
+				"RUR",
+				"https://some-url.ru",
+				"Shop name",
+				nil,
+				now,
+				nil,
 			},
 			mockErr: nil,
 			wantErr: false,
 		},
 		{
-			name: "create with short from_country field",
-			inputTrip: TripModel{
-				TravelerID:    travelerID,
-				FromCountry:   "U",
-				FromCity:      "New York",
-				ToCountry:     "UK",
-				ToCity:        "London",
-				DepartureDate: now,
-				ArrivalDate:   now.Add(24 * time.Hour),
+			name: "successful create with all fields",
+			input: ProductModel{
+				nil,
+				&orderID,
+				"Some product",
+				&description,
+				12.3,
+				"RUR",
+				"https://some-url.ru",
+				"Shop name",
+				&links,
+				nil,
+				nil,
 			},
-			mockResult: domain_models.TripModel{},
+			mockResult: domain_models.ProductModel{
+				uuid.New(),
+				&orderID,
+				"Some product",
+				&description,
+				12.3,
+				"RUR",
+				"https://some-url.ru",
+				"Shop name",
+				&links,
+				now,
+				nil,
+			},
+			mockErr: nil,
+			wantErr: false,
+		},
+		{
+			name: "create with short name field",
+			input: ProductModel{
+				nil,
+				nil,
+				"So",
+				nil,
+				12.3,
+				"RUR",
+				"https://some-url.ru",
+				"Shop name",
+				nil,
+				&now,
+				nil,
+			},
+			mockResult: domain_models.ProductModel{},
 			mockErr:    api_errors.ErrorFieldValidation,
 			wantErr:    true,
 		},
 		{
-			name: "create with short from_city field",
-			inputTrip: TripModel{
-				TravelerID:    travelerID,
-				FromCountry:   "USA",
-				FromCity:      "Ne",
-				ToCountry:     "UK",
-				ToCity:        "London",
-				DepartureDate: now,
-				ArrivalDate:   now.Add(24 * time.Hour),
+			name: "create with negative price field",
+			input: ProductModel{
+				nil,
+				nil,
+				"Some name",
+				nil,
+				-12.3,
+				"RUR",
+				"https://some-url.ru",
+				"Shop name",
+				nil,
+				&now,
+				nil,
 			},
-			mockResult: domain_models.TripModel{},
+			mockResult: domain_models.ProductModel{},
 			mockErr:    api_errors.ErrorFieldValidation,
 			wantErr:    true,
 		},
 		{
-			name: "create with short to_country field",
-			inputTrip: TripModel{
-				TravelerID:    travelerID,
-				FromCountry:   "USA",
-				FromCity:      "New York",
-				ToCountry:     "U",
-				ToCity:        "London",
-				DepartureDate: now,
-				ArrivalDate:   now.Add(24 * time.Hour),
+			name: "create with incorrect currency field",
+			input: ProductModel{
+				nil,
+				nil,
+				"Some name",
+				nil,
+				-12.3,
+				"TR",
+				"https://some-url.ru",
+				"Shop name",
+				nil,
+				&now,
+				nil,
 			},
-			mockResult: domain_models.TripModel{},
+			mockResult: domain_models.ProductModel{},
 			mockErr:    api_errors.ErrorFieldValidation,
 			wantErr:    true,
 		},
 		{
-			name: "create with short to_city field",
-			inputTrip: TripModel{
-				TravelerID:    travelerID,
-				FromCountry:   "USA",
-				FromCity:      "New York",
-				ToCountry:     "UK",
-				ToCity:        "L",
-				DepartureDate: now,
-				ArrivalDate:   now.Add(24 * time.Hour),
+			name: "create without shop_url field",
+			input: ProductModel{
+				nil,
+				nil,
+				"Some name",
+				nil,
+				-12.3,
+				"TR",
+				"",
+				"Shop name",
+				nil,
+				&now,
+				nil,
 			},
-			mockResult: domain_models.TripModel{},
+			mockResult: domain_models.ProductModel{},
 			mockErr:    api_errors.ErrorFieldValidation,
 			wantErr:    true,
 		},
 		{
-			name: "create with incorrect status",
-			inputTrip: TripModel{
-				TravelerID:    travelerID,
-				FromCountry:   "USA",
-				FromCity:      "New York",
-				ToCountry:     "UK",
-				ToCity:        "London",
-				DepartureDate: now,
-				ArrivalDate:   now.Add(24 * time.Hour),
-				Status:        &incorrectStatus,
+			name: "create with incorrect shop_url field",
+			input: ProductModel{
+				nil,
+				nil,
+				"Some name",
+				nil,
+				-12.3,
+				"TR",
+				"shop-url.ru",
+				"Shop name",
+				nil,
+				&now,
+				nil,
 			},
-			mockResult: domain_models.TripModel{},
-			mockErr:    api_errors.ErrorIncorrectStatus,
+			mockResult: domain_models.ProductModel{},
+			mockErr:    api_errors.ErrorFieldValidation,
+			wantErr:    true,
+		},
+		{
+			name: "create without shop_name field",
+			input: ProductModel{
+				nil,
+				nil,
+				"Some name",
+				nil,
+				-12.3,
+				"TR",
+				"https://some-url.ru",
+				"",
+				nil,
+				&now,
+				nil,
+			},
+			mockResult: domain_models.ProductModel{},
+			mockErr:    api_errors.ErrorFieldValidation,
+			wantErr:    true,
+		},
+		{
+			name: "create with incorrect image_urls field",
+			input: ProductModel{
+				nil,
+				nil,
+				"Some name",
+				nil,
+				-12.3,
+				"TR",
+				"https://some-url.ru",
+				"",
+				&incorrectImages,
+				&now,
+				nil,
+			},
+			mockResult: domain_models.ProductModel{},
+			mockErr:    api_errors.ErrorFieldValidation,
 			wantErr:    true,
 		},
 	}
@@ -182,27 +266,32 @@ func TestCreate(t *testing.T) {
 				mockRepo.On("Create", ctx, mock.Anything).Return(tt.mockResult, tt.mockErr)
 			}
 			service := NewService(mockRepo, slog.Default())
-			result, err := service.Create(ctx, tt.inputTrip)
+			result, err := service.Create(ctx, tt.input)
 
 			if tt.wantErr {
 				assert.Error(t, err)
-				assert.Equal(t, TripModel{}, result)
+				assert.Equal(t, ProductModel{}, result)
 				assert.ErrorIs(t, err, tt.mockErr)
 			} else {
 				assert.NoError(t, err)
 				assert.NotNil(t, result)
 
-				assert.Equal(t, tt.inputTrip.TravelerID, result.TravelerID)
-				assert.Equal(t, tt.inputTrip.FromCountry, result.FromCountry)
-				assert.Equal(t, tt.inputTrip.FromCity, result.FromCity)
-				assert.Equal(t, tt.inputTrip.ToCountry, result.ToCountry)
-				assert.Equal(t, tt.inputTrip.ToCity, result.ToCity)
-				assert.Equal(t, tt.mockResult.Status, *result.Status)
-				assert.True(t, result.DepartureDate.Equal(tt.inputTrip.DepartureDate))
-				assert.True(t, result.ArrivalDate.Equal(tt.inputTrip.ArrivalDate))
+				assert.Equal(t, tt.input.Name, result.Name)
+				if tt.input.OrderID != nil {
+					assert.Equal(t, tt.input.OrderID, result.OrderID)
+				}
+				if tt.input.Description != nil {
+					assert.Equal(t, tt.input.Description, result.Description)
+				}
+				assert.Equal(t, tt.input.Price, result.Price)
+				assert.Equal(t, tt.input.Currency, result.Currency)
+				assert.Equal(t, tt.input.ShopUrl, result.ShopUrl)
+				assert.Equal(t, tt.input.ShopName, result.ShopName)
+				if tt.input.ImageUrls != nil {
+					assert.Equal(t, *tt.input.ImageUrls, *result.ImageUrls)
+				}
 
 				assert.NotEqual(t, uuid.Nil, result.ID, "ID should be generated")
-				assert.Equal(t, "planned", *result.Status, "Status should be 'planned'")
 				assert.NotZero(t, result.CreatedAt, "CreatedAt should be set")
 				assert.Nil(t, result.UpdatedAt, "UpdatedAt should be nil")
 			}
@@ -215,114 +304,108 @@ func TestCreate(t *testing.T) {
 func TestUpdate(t *testing.T) {
 	now := time.Now()
 	ID := uuid.New()
-	newFromCountry := "Spain"
-	newFromCity := "Madrid"
-	newToCountry := "Germany"
-	newToCity := "Born"
-	newDepartureDate := now
-	newArrivalDate := now.Add(56 * time.Hour)
-	newWeight := 5.0
-	newSize := 5.0
-	newStatus := "ongoing"
-	incorrectFromCountry := "S"
-	incorrectFromCity := "M"
-	incorrectToCountry := "G"
-	incorrectToCity := "Bo"
-	incorrectWeight := 105.0
-	incorrectSize := 75.0
-	incorrectStatus := "draft"
+	newName := "New name"
+	newDescription := "New description"
+	newPrice := 21.36
+	newCurrency := "USD"
+	newShopUrl := "https://new-link.ru"
+	newShopName := "Some new shop name"
+	newImageUrls := []string{"https://link.ru"}
+	incorrectName := "S"
+	incorrectDescription := "M"
+	incorrectPrice := -1.0
+	incorrectCurrency := "TR"
+	incorrectShopUrl := "shop-url.ru"
+	incorrectShopName := "N"
+	incorrectImageUrls := []string{"link.ru"}
 	tests := []struct {
 		name       string
-		inputTrip  TripUpdateModel
-		successful domain_models.TripModel
+		input      ProductUpdateModel
+		successful domain_models.ProductModel
 		mockErr    error
 		wantErr    bool
 	}{
 		{
 			name: "successful update",
-			inputTrip: TripUpdateModel{
-				FromCountry:   &newFromCountry,
-				FromCity:      &newFromCity,
-				ToCountry:     &newToCountry,
-				ToCity:        &newToCity,
-				DepartureDate: &newDepartureDate,
-				ArrivalDate:   &newArrivalDate,
-				MaxWeightKG:   &newWeight,
-				MaxSizeCM3:    &newSize,
-				Status:        &newStatus,
+			input: ProductUpdateModel{
+				&newName,
+				&newDescription,
+				&newPrice,
+				&newCurrency,
+				&newShopUrl,
+				&newShopName,
+				&newImageUrls,
 			},
-			successful: domain_models.TripModel{
-				ID:            ID,
-				TravelerID:    uuid.New(),
-				FromCountry:   newFromCountry,
-				FromCity:      newFromCity,
-				ToCountry:     newToCountry,
-				ToCity:        newToCity,
-				DepartureDate: newDepartureDate,
-				ArrivalDate:   newArrivalDate,
-				MaxWeightKG:   newWeight,
-				MaxSizeCM3:    newSize,
-				Status:        newStatus,
-				CreatedAt:     now,
-				UpdatedAt:     &now,
+			successful: domain_models.ProductModel{
+				ID,
+				nil,
+				newName,
+				&newDescription,
+				newPrice,
+				newCurrency,
+				newShopUrl,
+				newShopName,
+				&newImageUrls,
+				now,
+				&now,
 			},
 			mockErr: nil,
 			wantErr: false,
 		},
 		{
-			name: "update incorrect from_country",
-			inputTrip: TripUpdateModel{
-				FromCountry: &incorrectFromCountry,
+			name: "update incorrect name",
+			input: ProductUpdateModel{
+				Name: &incorrectName,
 			},
 			mockErr: api_errors.ErrorFieldValidation,
 			wantErr: true,
 		},
 		{
-			name: "update incorrect from_city",
-			inputTrip: TripUpdateModel{
-				FromCity: &incorrectFromCity,
+			name: "update incorrect description",
+			input: ProductUpdateModel{
+				Description: &incorrectDescription,
 			},
 			mockErr: api_errors.ErrorFieldValidation,
 			wantErr: true,
 		},
 		{
-			name: "update incorrect to_country",
-			inputTrip: TripUpdateModel{
-				ToCountry: &incorrectToCountry,
+			name: "update incorrect price",
+			input: ProductUpdateModel{
+				Price: &incorrectPrice,
 			},
 			mockErr: api_errors.ErrorFieldValidation,
 			wantErr: true,
 		},
 		{
-			name: "update incorrect to_city",
-			inputTrip: TripUpdateModel{
-				ToCity: &incorrectToCity,
+			name: "update incorrect currency",
+			input: ProductUpdateModel{
+				Currency: &incorrectCurrency,
 			},
 			mockErr: api_errors.ErrorFieldValidation,
 			wantErr: true,
 		},
 		{
-			name: "update incorrect max_weight",
-			inputTrip: TripUpdateModel{
-				MaxWeightKG: &incorrectWeight,
+			name: "update incorrect shop_url",
+			input: ProductUpdateModel{
+				ShopUrl: &incorrectShopUrl,
 			},
 			mockErr: api_errors.ErrorFieldValidation,
 			wantErr: true,
 		},
 		{
-			name: "update incorrect max_size",
-			inputTrip: TripUpdateModel{
-				MaxSizeCM3: &incorrectSize,
+			name: "update incorrect shop_name",
+			input: ProductUpdateModel{
+				ShopName: &incorrectShopName,
 			},
 			mockErr: api_errors.ErrorFieldValidation,
 			wantErr: true,
 		},
 		{
-			name: "update incorrect status",
-			inputTrip: TripUpdateModel{
-				Status: &incorrectStatus,
+			name: "update incorrect image_urls",
+			input: ProductUpdateModel{
+				ImageUrls: &incorrectImageUrls,
 			},
-			mockErr: api_errors.ErrorIncorrectStatus,
+			mockErr: api_errors.ErrorFieldValidation,
 			wantErr: true,
 		},
 	}
@@ -336,24 +419,23 @@ func TestUpdate(t *testing.T) {
 				mockRepo.On("Update", ctx, ID, mock.Anything).Return(tt.successful, tt.mockErr)
 			}
 			service := NewService(mockRepo, slog.Default())
-			result, err := service.Update(ctx, ID, tt.inputTrip)
+			result, err := service.Update(ctx, ID, tt.input)
 
 			if tt.wantErr {
 				assert.Error(t, err)
-				assert.Equal(t, TripModel{}, result)
+				assert.Equal(t, ProductModel{}, result)
 				assert.ErrorIs(t, err, tt.mockErr)
 			} else {
 				assert.NoError(t, err)
 				assert.NotNil(t, result)
 
-				assert.NotEqual(t, uuid.Nil, result.TravelerID, "TravalerID should be not nil")
-				assert.Equal(t, *tt.inputTrip.FromCountry, result.FromCountry)
-				assert.Equal(t, *tt.inputTrip.FromCity, result.FromCity)
-				assert.Equal(t, *tt.inputTrip.ToCountry, result.ToCountry)
-				assert.Equal(t, *tt.inputTrip.ToCity, result.ToCity)
-				assert.Equal(t, *tt.inputTrip.Status, *result.Status)
-				assert.True(t, result.DepartureDate.Equal(*tt.inputTrip.DepartureDate))
-				assert.True(t, result.ArrivalDate.Equal(*tt.inputTrip.ArrivalDate))
+				assert.Nil(t, result.OrderID, "OrderID should be nil")
+				assert.Equal(t, *tt.input.Name, result.Name)
+				assert.Equal(t, *tt.input.Description, *result.Description)
+				assert.Equal(t, *tt.input.Price, result.Price)
+				assert.Equal(t, *tt.input.ShopUrl, result.ShopUrl)
+				assert.Equal(t, *tt.input.ShopName, result.ShopName)
+				assert.Equal(t, *tt.input.ImageUrls, *result.ImageUrls)
 
 				assert.Equal(t, ID, *result.ID)
 				assert.NotZero(t, result.CreatedAt, "CreatedAt should be set")
@@ -368,42 +450,44 @@ func TestUpdate(t *testing.T) {
 func TestGetDetail(t *testing.T) {
 	now := time.Now()
 	ID := uuid.New()
+	description := "desc"
+	images := []string{"https://image.ru"}
 
 	tests := []struct {
-		name     string
-		id       uuid.UUID
-		mockTrip domain_models.TripModel
-		mockErr  error
-		wantErr  bool
-		wantNil  bool
+		name       string
+		id         uuid.UUID
+		mockResult domain_models.ProductModel
+		mockErr    error
+		wantErr    bool
+		wantNil    bool
 	}{
 		{
-			name: "successful get detail",
+			name: "successful get product",
 			id:   ID,
-			mockTrip: domain_models.TripModel{
-				ID:            ID,
-				TravelerID:    uuid.New(),
-				FromCountry:   "USA",
-				FromCity:      "New York",
-				ToCountry:     "UK",
-				ToCity:        "London",
-				DepartureDate: now,
-				ArrivalDate:   now.Add(24 * time.Hour),
-				Status:        "active",
-				CreatedAt:     now,
-				UpdatedAt:     &now,
+			mockResult: domain_models.ProductModel{
+				ID,
+				nil,
+				"Some",
+				&description,
+				2.3,
+				"USD",
+				"https://link.ru",
+				"Name of shop",
+				&images,
+				now,
+				&now,
 			},
 			mockErr: nil,
 			wantErr: false,
 			wantNil: false,
 		},
 		{
-			name:     "trip not found",
-			id:       uuid.New(),
-			mockTrip: domain_models.TripModel{},
-			mockErr:  api_errors.ErrorNotFound,
-			wantErr:  true,
-			wantNil:  true,
+			name:       "product not found",
+			id:         uuid.New(),
+			mockResult: domain_models.ProductModel{},
+			mockErr:    api_errors.ErrorNotFound,
+			wantErr:    true,
+			wantNil:    true,
 		},
 	}
 
@@ -412,27 +496,27 @@ func TestGetDetail(t *testing.T) {
 			ctx := context.Background()
 			mockRepo := new(MockTripRepository)
 
-			mockRepo.On("GetDetail", ctx, tt.id).Return(tt.mockTrip, tt.mockErr)
+			mockRepo.On("GetDetail", ctx, tt.id).Return(tt.mockResult, tt.mockErr)
 
 			service := NewService(mockRepo, slog.Default())
 			result, err := service.GetDetail(ctx, tt.id)
 
 			if tt.wantErr {
 				assert.Error(t, err)
-				assert.Equal(t, TripModel{}, result)
+				assert.Equal(t, ProductModel{}, result)
 				assert.ErrorIs(t, err, tt.mockErr)
 			} else {
 				assert.NoError(t, err)
 				assert.NotNil(t, result)
 
-				assert.NotEqual(t, uuid.Nil, result.TravelerID, "TravalerID should be not nil")
-				assert.Equal(t, tt.mockTrip.FromCountry, result.FromCountry)
-				assert.Equal(t, tt.mockTrip.FromCity, result.FromCity)
-				assert.Equal(t, tt.mockTrip.ToCountry, result.ToCountry)
-				assert.Equal(t, tt.mockTrip.ToCity, result.ToCity)
-				assert.Equal(t, tt.mockTrip.Status, *result.Status)
-				assert.True(t, result.DepartureDate.Equal(tt.mockTrip.DepartureDate))
-				assert.True(t, result.ArrivalDate.Equal(tt.mockTrip.ArrivalDate))
+				assert.Nil(t, result.OrderID, "OrderID should be nil")
+				assert.Equal(t, tt.mockResult.Name, result.Name)
+				assert.Equal(t, *tt.mockResult.Description, *result.Description)
+				assert.Equal(t, tt.mockResult.Price, result.Price)
+				assert.Equal(t, tt.mockResult.Currency, result.Currency)
+				assert.Equal(t, tt.mockResult.ShopUrl, result.ShopUrl)
+				assert.Equal(t, tt.mockResult.ShopName, result.ShopName)
+				assert.Equal(t, *tt.mockResult.ImageUrls, *result.ImageUrls)
 
 				assert.Equal(t, ID, *result.ID)
 				assert.NotZero(t, result.CreatedAt, "CreatedAt should be set")
@@ -444,207 +528,62 @@ func TestGetDetail(t *testing.T) {
 	}
 }
 
-func TestGetActive(t *testing.T) {
-	now := time.Now()
-
-	tests := []struct {
-		name      string
-		mockTrips []domain_models.TripModel
-		mockErr   error
-		wantCount int
-		wantErr   bool
-	}{
-		{
-			name: "successful get active trips",
-			mockTrips: []domain_models.TripModel{
-				{
-					ID:            uuid.New(),
-					TravelerID:    uuid.New(),
-					FromCountry:   "USA",
-					FromCity:      "New York",
-					Status:        "planned",
-					DepartureDate: now,
-					ArrivalDate:   now.Add(24 * time.Hour),
-					CreatedAt:     now,
-					UpdatedAt:     nil,
-				},
-				{
-					ID:            uuid.New(),
-					TravelerID:    uuid.New(),
-					FromCountry:   "UK",
-					FromCity:      "London",
-					Status:        "ongoing",
-					DepartureDate: now,
-					ArrivalDate:   now.Add(48 * time.Hour),
-					CreatedAt:     now,
-					UpdatedAt:     &now,
-				},
-			},
-			mockErr:   nil,
-			wantCount: 2,
-			wantErr:   false,
-		},
-		{
-			name:      "no active trips",
-			mockTrips: []domain_models.TripModel{},
-			mockErr:   nil,
-			wantCount: 0,
-			wantErr:   false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			ctx := context.Background()
-			mockRepo := new(MockTripRepository)
-
-			mockRepo.On("GetActive", ctx).Return(tt.mockTrips, tt.mockErr)
-
-			service := NewService(mockRepo, slog.Default())
-			results, err := service.GetActive(ctx)
-
-			if tt.wantErr {
-				assert.Error(t, err)
-				assert.Equal(t, TripModel{}, results)
-				assert.ErrorIs(t, err, tt.mockErr)
-			} else {
-				assert.NoError(t, err)
-
-				assert.Equal(t, tt.wantCount, len(results))
-				for _, res := range results {
-					assert.NotEqual(t, "completed", *res.Status)
-				}
-			}
-
-			mockRepo.AssertExpectations(t)
-		})
-	}
-}
-
-func TestGetCompleted(t *testing.T) {
-	now := time.Now()
-
-	tests := []struct {
-		name      string
-		mockTrips []domain_models.TripModel
-		mockErr   error
-		wantCount int
-		wantErr   bool
-	}{
-		{
-			name: "successful get active trips",
-			mockTrips: []domain_models.TripModel{
-				{
-					ID:            uuid.New(),
-					TravelerID:    uuid.New(),
-					FromCountry:   "USA",
-					FromCity:      "New York",
-					Status:        "completed",
-					DepartureDate: now,
-					ArrivalDate:   now.Add(24 * time.Hour),
-					CreatedAt:     now,
-					UpdatedAt:     nil,
-				},
-				{
-					ID:            uuid.New(),
-					TravelerID:    uuid.New(),
-					FromCountry:   "UK",
-					FromCity:      "London",
-					Status:        "completed",
-					DepartureDate: now,
-					ArrivalDate:   now.Add(48 * time.Hour),
-					CreatedAt:     now,
-					UpdatedAt:     &now,
-				},
-			},
-			mockErr:   nil,
-			wantCount: 2,
-			wantErr:   false,
-		},
-		{
-			name:      "no active trips",
-			mockTrips: []domain_models.TripModel{},
-			mockErr:   nil,
-			wantCount: 0,
-			wantErr:   false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			ctx := context.Background()
-			mockRepo := new(MockTripRepository)
-
-			mockRepo.On("GetCompleted", ctx).Return(tt.mockTrips, tt.mockErr)
-
-			service := NewService(mockRepo, slog.Default())
-			results, err := service.GetCompleted(ctx)
-
-			if tt.wantErr {
-				assert.Error(t, err)
-				assert.Equal(t, TripModel{}, results)
-				assert.ErrorIs(t, err, tt.mockErr)
-			} else {
-				assert.NoError(t, err)
-
-				assert.Equal(t, tt.wantCount, len(results))
-				for _, res := range results {
-					assert.Equal(t, "completed", *res.Status)
-				}
-			}
-
-			mockRepo.AssertExpectations(t)
-		})
-	}
-}
-
 func TestGetList(t *testing.T) {
 	now := time.Now()
+	orderID := uuid.New()
+	description := "descr"
+	images := []string{"https://link.ru"}
 
 	tests := []struct {
-		name      string
-		limit     int
-		offset    int
-		mockTrips []domain_models.TripModel
-		mockErr   error
-		wantCount int
-		wantErr   bool
+		name        string
+		limit       int
+		offset      int
+		mockResults []domain_models.ProductModel
+		mockErr     error
+		wantCount   int
+		wantErr     bool
 	}{
 		{
 			name: "successful get all",
-			mockTrips: []domain_models.TripModel{
+			mockResults: []domain_models.ProductModel{
 				{
-					ID:            uuid.New(),
-					TravelerID:    uuid.New(),
-					FromCountry:   "USA",
-					FromCity:      "New York",
-					Status:        "planned",
-					DepartureDate: now,
-					ArrivalDate:   now.Add(24 * time.Hour),
-					CreatedAt:     now,
-					UpdatedAt:     nil,
+					uuid.New(),
+					&orderID,
+					"Addidas",
+					&description,
+					125.36,
+					"USD",
+					"https://addidas.com",
+					"addidas",
+					&images,
+					now,
+					nil,
 				},
 				{
-					ID:            uuid.New(),
-					TravelerID:    uuid.New(),
-					FromCountry:   "USA",
-					FromCity:      "New York",
-					Status:        "ongoing",
-					DepartureDate: now,
-					ArrivalDate:   now.Add(24 * time.Hour),
-					CreatedAt:     now,
-					UpdatedAt:     &now,
+					uuid.New(),
+					&orderID,
+					"Addidas",
+					&description,
+					125.36,
+					"USD",
+					"https://addidas.com",
+					"addidas",
+					&images,
+					now,
+					nil,
 				},
 				{
-					ID:            uuid.New(),
-					TravelerID:    uuid.New(),
-					FromCountry:   "USA",
-					FromCity:      "New York",
-					Status:        "completed",
-					DepartureDate: now,
-					ArrivalDate:   now.Add(24 * time.Hour),
-					CreatedAt:     now,
-					UpdatedAt:     &now,
+					uuid.New(),
+					&orderID,
+					"Addidas",
+					&description,
+					125.36,
+					"USD",
+					"https://addidas.com",
+					"addidas",
+					&images,
+					now,
+					nil,
 				},
 			},
 			mockErr:   nil,
@@ -654,17 +593,19 @@ func TestGetList(t *testing.T) {
 		{
 			name:  "successful get one record",
 			limit: 1,
-			mockTrips: []domain_models.TripModel{
+			mockResults: []domain_models.ProductModel{
 				{
-					ID:            uuid.New(),
-					TravelerID:    uuid.New(),
-					FromCountry:   "USA",
-					FromCity:      "New York",
-					Status:        "planned",
-					DepartureDate: now,
-					ArrivalDate:   now.Add(24 * time.Hour),
-					CreatedAt:     now,
-					UpdatedAt:     nil,
+					uuid.New(),
+					&orderID,
+					"Addidas",
+					&description,
+					125.36,
+					"USD",
+					"https://addidas.com",
+					"addidas",
+					&images,
+					now,
+					nil,
 				},
 			},
 			mockErr:   nil,
@@ -674,28 +615,32 @@ func TestGetList(t *testing.T) {
 		{
 			name:   "successful get with offset",
 			offset: 1,
-			mockTrips: []domain_models.TripModel{
+			mockResults: []domain_models.ProductModel{
 				{
-					ID:            uuid.New(),
-					TravelerID:    uuid.New(),
-					FromCountry:   "USA",
-					FromCity:      "New York",
-					Status:        "planned",
-					DepartureDate: now,
-					ArrivalDate:   now.Add(24 * time.Hour),
-					CreatedAt:     now,
-					UpdatedAt:     nil,
+					uuid.New(),
+					&orderID,
+					"Addidas",
+					&description,
+					125.36,
+					"USD",
+					"https://addidas.com",
+					"addidas",
+					&images,
+					now,
+					nil,
 				},
 				{
-					ID:            uuid.New(),
-					TravelerID:    uuid.New(),
-					FromCountry:   "USA",
-					FromCity:      "New York",
-					Status:        "completed",
-					DepartureDate: now,
-					ArrivalDate:   now.Add(24 * time.Hour),
-					CreatedAt:     now,
-					UpdatedAt:     &now,
+					uuid.New(),
+					&orderID,
+					"Addidas",
+					&description,
+					125.36,
+					"USD",
+					"https://addidas.com",
+					"addidas",
+					&images,
+					now,
+					nil,
 				},
 			},
 			mockErr:   nil,
@@ -703,11 +648,11 @@ func TestGetList(t *testing.T) {
 			wantErr:   false,
 		},
 		{
-			name:      "get list with empty filters",
-			mockTrips: []domain_models.TripModel{},
-			mockErr:   nil,
-			wantCount: 0,
-			wantErr:   false,
+			name:        "get list with empty filters",
+			mockResults: []domain_models.ProductModel{},
+			mockErr:     nil,
+			wantCount:   0,
+			wantErr:     false,
 		},
 	}
 
@@ -716,14 +661,14 @@ func TestGetList(t *testing.T) {
 			ctx := context.Background()
 			mockRepo := new(MockTripRepository)
 
-			mockRepo.On("GetList", ctx, tt.limit, tt.offset).Return(tt.mockTrips, tt.mockErr)
+			mockRepo.On("GetList", ctx, tt.limit, tt.offset).Return(tt.mockResults, tt.mockErr)
 
 			service := NewService(mockRepo, slog.Default())
 			results, err := service.GetList(ctx, tt.limit, tt.offset)
 
 			if tt.wantErr {
 				assert.Error(t, err)
-				assert.Equal(t, TripModel{}, results)
+				assert.Equal(t, ProductModel{}, results)
 				assert.ErrorIs(t, err, tt.mockErr)
 			} else {
 				assert.NoError(t, err)
@@ -735,59 +680,66 @@ func TestGetList(t *testing.T) {
 	}
 }
 
-func TestCancel(t *testing.T) {
+func TestDelete(t *testing.T) {
 	ID := uuid.New()
 	ID2 := uuid.New()
 	now := time.Now()
+	description := "desc"
 	tests := []struct {
 		name       string
 		id         uuid.UUID
-		mockResult domain_models.TripModel
+		mockResult domain_models.ProductModel
 		mockErr    error
 		wantErr    bool
+		callDetete bool
 	}{
 		{
-			name: "successful cancel",
+			name: "successful delete",
 			id:   ID,
-			mockResult: domain_models.TripModel{
-				ID:            ID,
-				TravelerID:    uuid.New(),
-				FromCountry:   "UK",
-				FromCity:      "London",
-				ToCountry:     "USA",
-				ToCity:        "New York",
-				DepartureDate: time.Now(),
-				ArrivalDate:   time.Now().Add(54 * time.Hour),
-				CreatedAt:     now,
-				Status:        "planned",
+			mockResult: domain_models.ProductModel{
+				ID,
+				nil,
+				"UK",
+				&description,
+				23.1,
+				"USD",
+				"link",
+				"name",
+				nil,
+				now,
+				nil,
 			},
-			mockErr: nil,
-			wantErr: false,
+			mockErr:    nil,
+			wantErr:    false,
+			callDetete: true,
 		},
 		{
-			name:       "cancel non-existent trip",
+			name:       "delete non exists product",
 			id:         uuid.New(),
-			mockResult: domain_models.TripModel{},
+			mockResult: domain_models.ProductModel{},
 			mockErr:    api_errors.ErrorNotFound,
 			wantErr:    true,
+			callDetete: true,
 		},
 		{
-			name: "cancel not planned trip",
+			name: "delete product which in order",
 			id:   ID2,
-			mockResult: domain_models.TripModel{
-				ID:            ID2,
-				TravelerID:    uuid.New(),
-				FromCountry:   "UK",
-				FromCity:      "London",
-				ToCountry:     "USA",
-				ToCity:        "New York",
-				DepartureDate: time.Now(),
-				ArrivalDate:   time.Now().Add(54 * time.Hour),
-				CreatedAt:     now,
-				Status:        "ongoing",
+			mockResult: domain_models.ProductModel{
+				ID2,
+				&ID2,
+				"UK",
+				&description,
+				23.1,
+				"USD",
+				"link",
+				"name",
+				nil,
+				now,
+				nil,
 			},
-			mockErr: api_errors.ErrorCanNotCancel,
-			wantErr: true,
+			mockErr:    api_errors.ErrorCantDeleteProduct,
+			wantErr:    true,
+			callDetete: false,
 		},
 	}
 
@@ -797,12 +749,12 @@ func TestCancel(t *testing.T) {
 			mockRepo := new(MockTripRepository)
 
 			mockRepo.On("GetDetail", ctx, tt.id).Return(tt.mockResult, nil)
-			if !tt.wantErr {
-				mockRepo.On("Cancel", ctx, tt.id).Return(tt.mockErr)
+			if tt.callDetete {
+				mockRepo.On("Delete", ctx, tt.id).Return(tt.mockErr)
 			}
 
 			service := NewService(mockRepo, slog.Default())
-			err := service.Cancel(ctx, tt.id)
+			err := service.Delete(ctx, tt.id)
 
 			if tt.wantErr {
 				assert.Error(t, err)

@@ -8,12 +8,12 @@ import (
 	domain_models "github.com/kadr/globe_express/internal/order_service/domain/models"
 )
 
-func (ts *ProductService) Update(ctx context.Context, productID uuid.UUID, schema ProductUpdateModel) (ProductModel, error) {
+func (ps *ProductService) Update(ctx context.Context, productID uuid.UUID, schema ProductUpdateModel) (ProductModel, error) {
 	newSchema, err := ToUpdateDomainModel(schema)
 	if err != nil {
 		return ProductModel{}, fmt.Errorf("product update service error: %w", err)
 	}
-	product, err := ts.repo.Update(ctx, productID, newSchema)
+	product, err := ps.repo.Update(ctx, productID, newSchema)
 	if err != nil {
 		return ProductModel{}, fmt.Errorf("product update service error: %w", err)
 	}
