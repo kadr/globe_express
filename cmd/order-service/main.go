@@ -12,7 +12,8 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/kadr/globe_express/config"
 	api_handlers "github.com/kadr/globe_express/internal/order_service/application/handlers"
-	product_repository "github.com/kadr/globe_express/internal/order_service/domain/repository"
+	repository "github.com/kadr/globe_express/internal/order_service/domain/repository"
+	order_service "github.com/kadr/globe_express/internal/order_service/domain/service/order"
 	product_service "github.com/kadr/globe_express/internal/order_service/domain/service/product"
 	middleware "github.com/kadr/globe_express/internal/shared/auth"
 )
@@ -32,9 +33,12 @@ func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 		Level: slog.LevelDebug,
 	}))
-	productRepo := product_repository.NewRepository(db, cfg.DBTimeout, logger)
+	orderRepo := repository.NewOrderRepository(db, cfg.DBTimeout, logger)
+	productRepo := repository.NewProductRepository(db, cfg.DBTimeout, logger)
+
 	productService := product_service.NewService(productRepo, logger)
-	api := api_handlers.NewProductAPI(productService, logger)
+	orderService := order_service.NewService(orderRepo, productService, logger)
+	api := api_handlers.NewProductAPI(orderService, productService, logger)
 	logger.Info("register all handlers")
 	api.RegisterMiddleware(
 		middleware.RequestID,

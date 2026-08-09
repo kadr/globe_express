@@ -10,7 +10,7 @@ CREATE TABLE users (
     avatar_url VARCHAR(500),
     rating DECIMAL(3,2) DEFAULT 0.00,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP,
 );
 
 CREATE INDEX idx_users_email ON users(email);
@@ -38,7 +38,7 @@ CREATE TABLE orders (
     delivery_deadline TIMESTAMP,
     delivery_date TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP,
 );
 
 CREATE INDEX idx_orders_customer ON orders(customer_id);
@@ -58,7 +58,7 @@ CREATE TABLE products (
     shop_name VARCHAR(255),
     image_urls TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP,
 );
 
 CREATE INDEX idx_products_order ON products(order_id);
@@ -80,7 +80,7 @@ CREATE TABLE trips (
     max_weight_kg DECIMAL(5,2),
     max_size_cm3 DECIMAL(10,2),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP,
 );
 
 CREATE INDEX idx_trips_traveler ON trips(traveler_id);
@@ -101,7 +101,7 @@ CREATE TABLE transactions (
     payment_method VARCHAR(50),
     transaction_id VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP
 );
 
 CREATE INDEX idx_transactions_order ON transactions(order_id);
@@ -115,7 +115,7 @@ CREATE TABLE reviews (
     rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
     comment TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP
 );
 
 CREATE INDEX idx_reviews_traveler ON reviews(traveler_id);

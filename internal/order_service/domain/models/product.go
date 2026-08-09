@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	vo "github.com/kadr/globe_express/internal/order_service/domain/value_objects"
+	shared_money "github.com/kadr/globe_express/internal/shared/money"
 )
 
 type ProductModel struct {
@@ -13,7 +14,7 @@ type ProductModel struct {
 	Name        string
 	Description *string
 	Price       float64
-	Currency    string
+	Currency    shared_money.Currency
 	ShopUrl     string
 	ShopName    string
 	ImageUrls   *[]string
@@ -24,7 +25,7 @@ type ProductUpdateModel struct {
 	Name        *string
 	Description *string
 	Price       *float64
-	Currency    *string
+	Currency    *shared_money.Currency
 	ShopUrl     *string
 	ShopName    *string
 	ImageUrls   *[]string
@@ -40,7 +41,7 @@ func NewProduct(name, currency, shopUrl, shopName string, price float64, descrip
 	if err != nil {
 		return ProductModel{}, err
 	}
-	currency, err = vo.NewCurrency(currency)
+	newCurrency, err := vo.NewCurrency(currency)
 	if err != nil {
 		return ProductModel{}, err
 	}
@@ -72,7 +73,7 @@ func NewProduct(name, currency, shopUrl, shopName string, price float64, descrip
 		name,
 		description,
 		price,
-		currency,
+		newCurrency,
 		shopUrl,
 		shopName,
 		imageUrls,
@@ -95,8 +96,9 @@ func NewUpdateProduct(name, currency, shopUrl, shopName, description *string, pr
 			return ProductUpdateModel{}, err
 		}
 	}
+	var newCurrency shared_money.Currency
 	if currency != nil {
-		*currency, err = vo.NewCurrency(*currency)
+		newCurrency, err = vo.NewCurrency(*currency)
 		if err != nil {
 			return ProductUpdateModel{}, err
 		}
@@ -131,7 +133,7 @@ func NewUpdateProduct(name, currency, shopUrl, shopName, description *string, pr
 		name,
 		description,
 		price,
-		currency,
+		&newCurrency,
 		shopUrl,
 		shopName,
 		imageUrls,
