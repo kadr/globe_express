@@ -21,7 +21,7 @@ func (oah *OrderAPIHandler) GetTravelerAvailable(c fiber.Ctx) error {
 	}
 	orders, err := oah.orderService.GetTravelerAvailable(ctx, limit, offset)
 	if err != nil {
-		oah.logger.Error("api GetTravelerAvailable order error: %w", err)
+		oah.logger.Error("api GetTravelerAvailable order", "error:", err.Error())
 		return err
 	}
 	return c.Status(fiber.StatusOK).JSON(dto.ToDTOList(orders))

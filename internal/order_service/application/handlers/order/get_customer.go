@@ -30,7 +30,7 @@ func (oah *OrderAPIHandler) GetCustomer(c fiber.Ctx) error {
 	}
 	orders, err := oah.orderService.GetCustomer(ctx, userID, limit, offset)
 	if err != nil {
-		oah.logger.Error("api GetCustomer order error: %w", err)
+		oah.logger.Error("api GetCustomer order", "error:", err.Error())
 		return err
 	}
 	return c.Status(fiber.StatusOK).JSON(dto.ToDTOList(orders))

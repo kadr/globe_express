@@ -12,12 +12,12 @@ func (pah *ProductAPIHandler) Create(c fiber.Ctx) error {
 	var createDTO dto.CreateDTO
 	err := c.Bind().Body(&createDTO)
 	if err != nil {
-		pah.logger.Error("api Create product error:", err)
+		pah.logger.Error("api Create product", "error:", err.Error())
 		return err
 	}
 	product, err := pah.productService.Create(ctx, dto.ToCreateModel(createDTO))
 	if err != nil {
-		pah.logger.Error("api Create product error:", err)
+		pah.logger.Error("api Create product", "error:", err.Error())
 		return err
 	}
 	return c.Status(fiber.StatusCreated).JSON(dto.ToDTO(product))

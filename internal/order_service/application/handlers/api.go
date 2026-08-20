@@ -37,7 +37,7 @@ func (ta *OrderAPI) Start(address string) error {
 	if err != nil {
 		return err
 	}
-	ta.logger.Info("Order server start succeful in address: ", address)
+	ta.logger.Info("Order server start succeful in", "address:", address)
 	return nil
 }
 

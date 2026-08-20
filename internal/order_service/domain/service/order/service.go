@@ -10,37 +10,6 @@ import (
 	services "github.com/kadr/globe_express/internal/order_service/interfaces/api/handlers"
 )
 
-// type OrderModel struct {
-// 	ID               *uuid.UUID
-// 	CustomerID       uuid.UUID
-// 	TravelerID       *uuid.UUID
-// 	Status           *string
-// 	PickupCity       string
-// 	PickupCountry    string
-// 	DeliveryCity     string
-// 	DeliveryCountry  string
-// 	RewardAmount     float64
-// 	RewardCurrency   string
-// 	DeliveryDeadline time.Time
-// 	DeliveryDate     time.Time
-// 	CreatedAt        *time.Time
-// 	UpdatedAt        *time.Time
-// 	Product          *product_service.ProductModel
-// }
-//
-// type OrderUpdateModel struct {
-// 	TravelerID       *uuid.UUID
-// 	Status           *string
-// 	PickupCity       *string
-// 	PickupCountry    *string
-// 	DeliveryCity     *string
-// 	DeliveryCountry  *string
-// 	RewardAmount     *float64
-// 	RewardCurrency   *string
-// 	DeliveryDeadline *time.Time
-// 	DeliveryDate     *time.Time
-// }
-
 type OrderRepositoryIface interface {
 	Create(ctx context.Context, schema domain_models.OrderModel) (domain_models.OrderModel, error)
 	Update(ctx context.Context, orderID uuid.UUID, schema domain_models.OrderUpdateModel) (domain_models.OrderModel, error)

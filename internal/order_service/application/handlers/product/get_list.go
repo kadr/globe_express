@@ -21,7 +21,7 @@ func (pah *ProductAPIHandler) GetList(c fiber.Ctx) error {
 	}
 	products, err := pah.productService.GetList(ctx, limit, offset)
 	if err != nil {
-		pah.logger.Error("api GetList product error: %w", err)
+		pah.logger.Error("api GetList product", "error:", err.Error())
 		return err
 	}
 	return c.Status(fiber.StatusOK).JSON(dto.ToDTOList(products))

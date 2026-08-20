@@ -21,7 +21,7 @@ func (oah *OrderAPIHandler) GetList(c fiber.Ctx) error {
 	}
 	orders, err := oah.orderService.GetList(ctx, limit, offset)
 	if err != nil {
-		oah.logger.Error("api GetList order error: %w", err)
+		oah.logger.Error("api GetList order", "error:", err.Error())
 		return err
 	}
 	return c.Status(fiber.StatusOK).JSON(dto.ToDTOList(orders))

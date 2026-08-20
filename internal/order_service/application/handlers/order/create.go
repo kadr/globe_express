@@ -16,7 +16,7 @@ func (oah *OrderAPIHandler) Create(c fiber.Ctx) error {
 	var createDTO dto.CreateDTO
 	err := c.Bind().Body(&createDTO)
 	if err != nil {
-		oah.logger.Error("api Create order error:", err)
+		oah.logger.Error("api Create order", "error:", err.Error())
 		return err
 	}
 	if id, ok := c.Value("userID").(uuid.UUID); ok {
@@ -26,7 +26,7 @@ func (oah *OrderAPIHandler) Create(c fiber.Ctx) error {
 	}
 	order, err := oah.orderService.Create(ctx, dto.ToCreateModel(createDTO))
 	if err != nil {
-		oah.logger.Error("api Create order error:", err)
+		oah.logger.Error("api Create order", "error:", err.Error())
 		return err
 	}
 	return c.Status(fiber.StatusCreated).JSON(dto.ToDTO(order))

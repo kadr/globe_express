@@ -62,20 +62,20 @@ func NewOrder(
 		return OrderModel{}, err
 	}
 	if pickupCity, err = vo.NewLocation(pickupCity); err != nil {
-		return OrderModel{}, nil
+		return OrderModel{}, err
 	}
 	if pickupCountry, err = vo.NewLocation(pickupCountry); err != nil {
-		return OrderModel{}, nil
+		return OrderModel{}, err
 	}
 	if deliveryCity, err = vo.NewLocation(deliveryCity); err != nil {
-		return OrderModel{}, nil
+		return OrderModel{}, err
 	}
 	if deliveryCountry, err = vo.NewLocation(deliveryCountry); err != nil {
-		return OrderModel{}, nil
+		return OrderModel{}, err
 	}
 
 	if rewardAmount, err = vo.NewPrice(rewardAmount); err != nil {
-		return OrderModel{}, nil
+		return OrderModel{}, err
 	}
 	if deliveryDeadline.Before(deliveryDate) {
 		return OrderModel{}, fmt.Errorf("incorrect delivery dates, delivery_deadline can not be less than delivery_date. %w", api_errors.ErrorFieldValidation)
@@ -128,27 +128,27 @@ func NewUpdateOrder(
 	}
 	if pickupCity != nil {
 		if *pickupCity, err = vo.NewLocation(*pickupCity); err != nil {
-			return OrderUpdateModel{}, nil
+			return OrderUpdateModel{}, err
 		}
 	}
 	if pickupCountry != nil {
 		if *pickupCountry, err = vo.NewLocation(*pickupCountry); err != nil {
-			return OrderUpdateModel{}, nil
+			return OrderUpdateModel{}, err
 		}
 	}
 	if deliveryCity != nil {
 		if *deliveryCity, err = vo.NewLocation(*deliveryCity); err != nil {
-			return OrderUpdateModel{}, nil
+			return OrderUpdateModel{}, err
 		}
 	}
 	if deliveryCountry != nil {
 		if *deliveryCountry, err = vo.NewLocation(*deliveryCountry); err != nil {
-			return OrderUpdateModel{}, nil
+			return OrderUpdateModel{}, err
 		}
 	}
 	if rewardAmount != nil {
 		if *rewardAmount, err = vo.NewPrice(*rewardAmount); err != nil {
-			return OrderUpdateModel{}, nil
+			return OrderUpdateModel{}, err
 		}
 	}
 	if deliveryDeadline != nil && deliveryDate != nil {

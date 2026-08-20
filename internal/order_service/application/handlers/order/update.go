@@ -17,17 +17,17 @@ func (oah *OrderAPIHandler) Update(c fiber.Ctx) error {
 	if id, err := uuid.Parse(c.Params("order_id")); err == nil {
 		orderID = id
 	} else {
-		oah.logger.Error("api update order error: %w", err)
+		oah.logger.Error("api update order", "error:", err.Error())
 		return err
 	}
 	var updateDTO dto.UpdateDTO
 	err := c.Bind().Body(&updateDTO)
 	if err != nil {
-		oah.logger.Error("api update order error: %w", err)
+		oah.logger.Error("api update order", "error:", err.Error())
 		return err
 	}
 	if err != nil {
-		oah.logger.Error("api update order error: %w", err)
+		oah.logger.Error("api update order", "error:", err.Error())
 		return err
 	}
 	if id, ok := c.Value("userID").(uuid.UUID); ok {
@@ -37,7 +37,7 @@ func (oah *OrderAPIHandler) Update(c fiber.Ctx) error {
 	}
 	order, err := oah.orderService.Update(ctx, orderID, dto.ToUpdateModel(updateDTO))
 	if err != nil {
-		oah.logger.Error("api update order error: %w", err)
+		oah.logger.Error("api update order", "error:", err.Error())
 		return err
 	}
 	return c.Status(fiber.StatusOK).JSON(dto.ToDTO(order))

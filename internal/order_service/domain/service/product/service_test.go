@@ -8,21 +8,22 @@ import (
 
 	"github.com/google/uuid"
 	domain_models "github.com/kadr/globe_express/internal/order_service/domain/models"
+	shared_money "github.com/kadr/globe_express/internal/shared/money"
 	api_errors "github.com/kadr/globe_express/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
-type MockTripRepository struct {
+type MockProductRepository struct {
 	mock.Mock
 }
 
-func (m *MockTripRepository) Create(ctx context.Context, trip domain_models.ProductModel) (domain_models.ProductModel, error) {
+func (m *MockProductRepository) Create(ctx context.Context, trip domain_models.ProductModel) (domain_models.ProductModel, error) {
 	args := m.Called(ctx, trip)
 	return args.Get(0).(domain_models.ProductModel), args.Error(1)
 }
 
-func (m *MockTripRepository) GetDetail(ctx context.Context, id uuid.UUID) (domain_models.ProductModel, error) {
+func (m *MockProductRepository) GetDetail(ctx context.Context, id uuid.UUID) (domain_models.ProductModel, error) {
 	args := m.Called(ctx, id)
 	if args.Get(0) == nil {
 		return domain_models.ProductModel{}, args.Error(1)
@@ -30,17 +31,17 @@ func (m *MockTripRepository) GetDetail(ctx context.Context, id uuid.UUID) (domai
 	return args.Get(0).(domain_models.ProductModel), args.Error(1)
 }
 
-func (m *MockTripRepository) GetList(ctx context.Context, limit, offset int) ([]domain_models.ProductModel, error) {
+func (m *MockProductRepository) GetList(ctx context.Context, limit, offset int) ([]domain_models.ProductModel, error) {
 	args := m.Called(ctx, limit, offset)
 	return args.Get(0).([]domain_models.ProductModel), args.Error(1)
 }
 
-func (m *MockTripRepository) Update(ctx context.Context, id uuid.UUID, trip domain_models.ProductUpdateModel) (domain_models.ProductModel, error) {
+func (m *MockProductRepository) Update(ctx context.Context, id uuid.UUID, trip domain_models.ProductUpdateModel) (domain_models.ProductModel, error) {
 	args := m.Called(ctx, id, trip)
 	return args.Get(0).(domain_models.ProductModel), args.Error(1)
 }
 
-func (m *MockTripRepository) Delete(ctx context.Context, id uuid.UUID) error {
+func (m *MockProductRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	args := m.Called(ctx, id)
 	return args.Error(0)
 }
@@ -68,7 +69,7 @@ func TestCreate(t *testing.T) {
 				"Some product",
 				nil,
 				12.3,
-				"RUR",
+				"RUB",
 				"https://some-url.ru",
 				"Shop name",
 				nil,
@@ -81,7 +82,7 @@ func TestCreate(t *testing.T) {
 				"Some product",
 				nil,
 				12.3,
-				"RUR",
+				"RUB",
 				"https://some-url.ru",
 				"Shop name",
 				nil,
@@ -99,7 +100,7 @@ func TestCreate(t *testing.T) {
 				"Some product",
 				&description,
 				12.3,
-				"RUR",
+				"RUB",
 				"https://some-url.ru",
 				"Shop name",
 				&links,
@@ -112,7 +113,7 @@ func TestCreate(t *testing.T) {
 				"Some product",
 				&description,
 				12.3,
-				"RUR",
+				"RUB",
 				"https://some-url.ru",
 				"Shop name",
 				&links,
@@ -130,7 +131,7 @@ func TestCreate(t *testing.T) {
 				"So",
 				nil,
 				12.3,
-				"RUR",
+				"RUB",
 				"https://some-url.ru",
 				"Shop name",
 				nil,
@@ -149,7 +150,7 @@ func TestCreate(t *testing.T) {
 				"Some name",
 				nil,
 				-12.3,
-				"RUR",
+				"RUB",
 				"https://some-url.ru",
 				"Shop name",
 				nil,
@@ -187,7 +188,7 @@ func TestCreate(t *testing.T) {
 				"Some name",
 				nil,
 				-12.3,
-				"TR",
+				"RUB",
 				"",
 				"Shop name",
 				nil,
@@ -206,7 +207,7 @@ func TestCreate(t *testing.T) {
 				"Some name",
 				nil,
 				-12.3,
-				"TR",
+				"RUB",
 				"shop-url.ru",
 				"Shop name",
 				nil,
@@ -225,7 +226,7 @@ func TestCreate(t *testing.T) {
 				"Some name",
 				nil,
 				-12.3,
-				"TR",
+				"RUB",
 				"https://some-url.ru",
 				"",
 				nil,
@@ -244,9 +245,9 @@ func TestCreate(t *testing.T) {
 				"Some name",
 				nil,
 				-12.3,
-				"TR",
+				"RUB",
 				"https://some-url.ru",
-				"",
+				"Some name",
 				&incorrectImages,
 				&now,
 				nil,
@@ -260,7 +261,7 @@ func TestCreate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := context.Background()
-			mockRepo := new(MockTripRepository)
+			mockRepo := new(MockProductRepository)
 
 			if !tt.wantErr {
 				mockRepo.On("Create", ctx, mock.Anything).Return(tt.mockResult, tt.mockErr)
@@ -342,7 +343,7 @@ func TestUpdate(t *testing.T) {
 				newName,
 				&newDescription,
 				newPrice,
-				newCurrency,
+				shared_money.Currency(newCurrency),
 				newShopUrl,
 				newShopName,
 				&newImageUrls,
@@ -413,7 +414,7 @@ func TestUpdate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := context.Background()
-			mockRepo := new(MockTripRepository)
+			mockRepo := new(MockProductRepository)
 
 			if !tt.wantErr {
 				mockRepo.On("Update", ctx, ID, mock.Anything).Return(tt.successful, tt.mockErr)
@@ -494,7 +495,7 @@ func TestGetDetail(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := context.Background()
-			mockRepo := new(MockTripRepository)
+			mockRepo := new(MockProductRepository)
 
 			mockRepo.On("GetDetail", ctx, tt.id).Return(tt.mockResult, tt.mockErr)
 
@@ -513,7 +514,7 @@ func TestGetDetail(t *testing.T) {
 				assert.Equal(t, tt.mockResult.Name, result.Name)
 				assert.Equal(t, *tt.mockResult.Description, *result.Description)
 				assert.Equal(t, tt.mockResult.Price, result.Price)
-				assert.Equal(t, tt.mockResult.Currency, result.Currency)
+				assert.Equal(t, tt.mockResult.Currency, shared_money.Currency(result.Currency))
 				assert.Equal(t, tt.mockResult.ShopUrl, result.ShopUrl)
 				assert.Equal(t, tt.mockResult.ShopName, result.ShopName)
 				assert.Equal(t, *tt.mockResult.ImageUrls, *result.ImageUrls)
@@ -659,7 +660,7 @@ func TestGetList(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := context.Background()
-			mockRepo := new(MockTripRepository)
+			mockRepo := new(MockProductRepository)
 
 			mockRepo.On("GetList", ctx, tt.limit, tt.offset).Return(tt.mockResults, tt.mockErr)
 
@@ -746,7 +747,7 @@ func TestDelete(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := context.Background()
-			mockRepo := new(MockTripRepository)
+			mockRepo := new(MockProductRepository)
 
 			mockRepo.On("GetDetail", ctx, tt.id).Return(tt.mockResult, nil)
 			if tt.callDetete {

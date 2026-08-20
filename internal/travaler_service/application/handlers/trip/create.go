@@ -13,13 +13,13 @@ func (tah *TripAPIHandler) Create(c fiber.Ctx) error {
 	var createDTO dto.CreateDTO
 	err := c.Bind().Body(&createDTO)
 	if err != nil {
-		tah.logger.Error("api Create trip error:", err)
+		tah.logger.Error("api Create trip", "error:", err.Error())
 		return err
 	}
 	userID := c.Value("userID").(uuid.UUID)
 	trip, err := tah.travalerService.Create(ctx, dto.ToCreateModel(createDTO, userID))
 	if err != nil {
-		tah.logger.Error("api Create trip error:", err)
+		tah.logger.Error("api Create trip", "error:", err.Error())
 		return err
 	}
 	return c.Status(fiber.StatusCreated).JSON(dto.ToDTO(trip))

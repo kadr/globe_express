@@ -34,7 +34,7 @@ func (ta *TravalerAPI) Start(address string) error {
 	if err != nil {
 		return err
 	}
-	ta.logger.Info("Server start succeful in address: ", address)
+	ta.logger.Info("Server start succeful in", "address:", address)
 	return nil
 }
 

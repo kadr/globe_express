@@ -14,12 +14,12 @@ func (oah *OrderAPIHandler) Cancel(c fiber.Ctx) error {
 	if id, err := uuid.Parse(c.Params("order_id")); err == nil {
 		orderID = id
 	} else {
-		oah.logger.Error("api Cancel order error: %w", err)
+		oah.logger.Error("api Cancel order", "error:", err.Error())
 		return err
 	}
 	order, err := oah.orderService.Cancel(ctx, orderID)
 	if err != nil {
-		oah.logger.Error("api Cancel order error: %w", err)
+		oah.logger.Error("api Cancel order", "error:", err.Error())
 		return err
 	}
 	return c.Status(fiber.StatusOK).JSON(dto.ToDTO(order))

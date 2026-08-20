@@ -14,12 +14,12 @@ func (oah *OrderAPIHandler) Transit(c fiber.Ctx) error {
 	if id, err := uuid.Parse(c.Params("order_id")); err == nil {
 		orderID = id
 	} else {
-		oah.logger.Error("api Transit order error: %w", err)
+		oah.logger.Error("api Transit order", "error:", err.Error())
 		return err
 	}
 	order, err := oah.orderService.Transit(ctx, orderID)
 	if err != nil {
-		oah.logger.Error("api Transit order error: %w", err)
+		oah.logger.Error("api Transit order", "error:", err.Error())
 		return err
 	}
 	return c.Status(fiber.StatusOK).JSON(dto.ToDTO(order))

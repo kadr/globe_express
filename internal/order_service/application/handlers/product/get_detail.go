@@ -14,12 +14,12 @@ func (pah *ProductAPIHandler) GetDetail(c fiber.Ctx) error {
 	if id, err := uuid.Parse(c.Params("product_id")); err == nil {
 		productID = id
 	} else {
-		pah.logger.Error("api GetDetail product error: %w", err)
+		pah.logger.Error("api GetDetail product", "error:", err.Error())
 		return err
 	}
 	product, err := pah.productService.GetDetail(ctx, productID)
 	if err != nil {
-		pah.logger.Error("api GetDetail product error: %w", err)
+		pah.logger.Error("api GetDetail product", "error:", err.Error())
 		return err
 	}
 	return c.Status(fiber.StatusOK).JSON(dto.ToDTO(product))
