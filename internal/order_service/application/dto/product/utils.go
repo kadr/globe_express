@@ -21,7 +21,7 @@ func ToDTO(schema product_service.ProductModel) ProductDTO {
 	if schema.OrderID != nil {
 		orderID := *schema.OrderID
 		orderIDStr := orderID.String()
-		productDTO.UpdatedAt = &orderIDStr
+		productDTO.OrderID = &orderIDStr
 	}
 	if schema.UpdatedAt != nil {
 		updateAt := *schema.UpdatedAt

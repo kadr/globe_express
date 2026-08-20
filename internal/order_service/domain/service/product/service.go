@@ -35,9 +35,9 @@ type ProductUpdateModel struct {
 
 type ProductRepositoryIface interface {
 	Create(ctx context.Context, schema domain_models.ProductModel) (domain_models.ProductModel, error)
-	Update(ctx context.Context, tripID uuid.UUID, schema domain_models.ProductUpdateModel) (domain_models.ProductModel, error)
-	Delete(ctx context.Context, tripID uuid.UUID) error
-	GetDetail(ctx context.Context, tripID uuid.UUID) (domain_models.ProductModel, error)
+	Update(ctx context.Context, productID uuid.UUID, schema domain_models.ProductUpdateModel) (domain_models.ProductModel, error)
+	Delete(ctx context.Context, productID uuid.UUID) error
+	GetDetail(ctx context.Context, productID uuid.UUID) (domain_models.ProductModel, error)
 	GetList(ctx context.Context, limit, offset int) ([]domain_models.ProductModel, error)
 }
 
@@ -57,7 +57,7 @@ func FromDomainModel(schema domain_models.ProductModel) ProductModel {
 		schema.Name,
 		schema.Description,
 		schema.Price,
-		schema.Currency,
+		string(schema.Currency),
 		schema.ShopUrl,
 		schema.ShopName,
 		schema.ImageUrls,

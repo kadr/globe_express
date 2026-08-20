@@ -21,7 +21,7 @@ func (tah *TripAPIHandler) GetList(c fiber.Ctx) error {
 	}
 	trips, err := tah.travalerService.GetList(ctx, limit, offset)
 	if err != nil {
-		tah.logger.Error("api GetList trip error: %w", err)
+		tah.logger.Error("api GetList trip", "error:", err.Error())
 		return err
 	}
 	return c.Status(fiber.StatusOK).JSON(dto.ToDTOList(trips))

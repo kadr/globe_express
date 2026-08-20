@@ -1,4 +1,4 @@
-package order_product_repository
+package order_repository
 
 import (
 	"context"
@@ -12,22 +12,23 @@ import (
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	domain_models "github.com/kadr/globe_express/internal/order_service/domain/models"
+	shared_money "github.com/kadr/globe_express/internal/shared/money"
 	api_errors "github.com/kadr/globe_express/pkg/errors"
 	_ "github.com/lib/pq"
 )
 
 type ProductResult struct {
-	ID          uuid.UUID  `db:"id"`
-	OrderID     *uuid.UUID `db:"order_id"`
-	Name        string     `db:"name"`
-	Description *string    `db:"description"`
-	Price       float64    `db:"price"`
-	Currency    string     `db:"currency"`
-	ShopUrl     string     `db:"shop_url"`
-	ShopName    string     `db:"shop_name"`
-	ImageUrls   *string    `db:"image_urls"`
-	CreatedAt   time.Time  `db:"created_at"`
-	UpdatedAt   *time.Time `db:"updated_at"`
+	ID          uuid.UUID  `db:"id" json:"id"`
+	OrderID     *uuid.UUID `db:"order_id" json:"order_id"`
+	Name        string     `db:"name" json:"name"`
+	Description *string    `db:"description" json:"description"`
+	Price       float64    `db:"price" json:"price"`
+	Currency    string     `db:"currency" json:"currency"`
+	ShopUrl     string     `db:"shop_url" json:"shop_url"`
+	ShopName    string     `db:"shop_name" json:"shop_name"`
+	ImageUrls   *string    `db:"image_urls" json:"image_urls"`
+	CreatedAt   time.Time  `db:"created_at" json:"created_at"`
+	UpdatedAt   *time.Time `db:"updated_at" json:"updated_at"`
 }
 
 type ProductRepository struct {
@@ -36,7 +37,7 @@ type ProductRepository struct {
 	logger  *slog.Logger
 }
 
-func NewRepository(db *sqlx.DB, timeout int, logger *slog.Logger) *ProductRepository {
+func NewProductRepository(db *sqlx.DB, timeout int, logger *slog.Logger) *ProductRepository {
 	return &ProductRepository{db: db, timeout: timeout, logger: logger}
 }
 
@@ -82,7 +83,7 @@ func (pr *ProductRepository) Create(ctx context.Context, schema domain_models.Pr
 			return domain_models.ProductModel{}, fmt.Errorf("product  repository, create err: %w", err)
 		}
 	}
-	return toDomainModel(result), nil
+	return toProductDomainModel(result), nil
 }
 
 func (pr *ProductRepository) Update(ctx context.Context, productID uuid.UUID, schema domain_models.ProductUpdateModel) (domain_models.ProductModel, error) {
@@ -125,7 +126,6 @@ func (pr *ProductRepository) Update(ctx context.Context, productID uuid.UUID, sc
 		RETURNING id,order_id,name,description,price,currency,shop_url,shop_name,image_urls,created_at,updated_at`,
 		strings.Join(setParts, ","),
 	)
-	pr.logger.Debug("stmt", stmt)
 	rows, err := pr.db.NamedQueryContext(ctx, stmt, args)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -145,7 +145,7 @@ func (pr *ProductRepository) Update(ctx context.Context, productID uuid.UUID, sc
 			return domain_models.ProductModel{}, fmt.Errorf("product  repository, update err: %w", err)
 		}
 
-		return toDomainModel(result), nil
+		return toProductDomainModel(result), nil
 	}
 	return domain_models.ProductModel{}, fmt.Errorf("product  repository, update err: can't update record")
 }
@@ -193,7 +193,7 @@ func (pr *ProductRepository) GetDetail(ctx context.Context, productID uuid.UUID)
 		return domain_models.ProductModel{}, fmt.Errorf("product  repository, GetDetail err: %w", err)
 	}
 
-	return toDomainModel(result), nil
+	return toProductDomainModel(result), nil
 }
 
 func (pr *ProductRepository) GetList(ctx context.Context, limit, offset int) ([]domain_models.ProductModel, error) {
@@ -213,10 +213,10 @@ func (pr *ProductRepository) GetList(ctx context.Context, limit, offset int) ([]
 		pr.logger.Error(err.Error())
 		return []domain_models.ProductModel{}, fmt.Errorf("product  repository, GetList err: %w", err)
 	}
-	return toDomainModelList(results), nil
+	return toProductDomainModelList(results), nil
 }
 
-func toDomainModel(result ProductResult) domain_models.ProductModel {
+func toProductDomainModel(result ProductResult) domain_models.ProductModel {
 	var images []string
 	if result.ImageUrls != nil {
 		for _, image := range strings.Split(*result.ImageUrls, ",") {
@@ -229,7 +229,7 @@ func toDomainModel(result ProductResult) domain_models.ProductModel {
 		result.Name,
 		result.Description,
 		result.Price,
-		result.Currency,
+		shared_money.Currency(result.Currency),
 		result.ShopUrl,
 		result.ShopName,
 		&images,
@@ -238,10 +238,10 @@ func toDomainModel(result ProductResult) domain_models.ProductModel {
 	}
 }
 
-func toDomainModelList(products []ProductResult) []domain_models.ProductModel {
+func toProductDomainModelList(products []ProductResult) []domain_models.ProductModel {
 	var results []domain_models.ProductModel
 	for _, res := range products {
-		results = append(results, toDomainModel(res))
+		results = append(results, toProductDomainModel(res))
 	}
 	return results
 }

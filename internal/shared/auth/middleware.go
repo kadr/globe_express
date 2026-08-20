@@ -94,6 +94,9 @@ func ExecuteResponse(c fiber.Ctx) error {
 		case errors.Is(err, api_errors.ErrorFieldValidation):
 			logger.Warn(err.Error())
 			return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{"error": err.Error()})
+		case errors.Is(err, api_errors.ErrorForbidden):
+			logger.Warn(err.Error())
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": err.Error()})
 		default:
 			logger.Warn(err.Error())
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Internal Server Error"})

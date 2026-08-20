@@ -17,13 +17,13 @@ func NewProductAPIHandler(productService product_service.ProductServiceIface, ap
 	return &ProductAPIHandler{productService: productService, app: app, logger: logger}
 }
 
-func (tah *ProductAPIHandler) RegisterHandlers() {
-	routes := tah.app.Group("/api/v1/products")
-	routes.Post("/", tah.Create)
-	routes.Patch("/:product_id", tah.Update)
-	routes.Get("/", tah.GetList)
-	routes.Get("/:product_id", tah.GetDetail)
-	routes.Delete("/:product_id", tah.Delete)
+func (pah *ProductAPIHandler) RegisterHandlers() {
+	routes := pah.app.Group("/api/v1/products")
+	routes.Post("/", pah.Create)
+	routes.Patch("/:product_id", pah.Update)
+	routes.Get("/", pah.GetList)
+	routes.Get("/:product_id", pah.GetDetail)
+	routes.Delete("/:product_id", pah.Delete)
 }
 
 func (tah *ProductAPIHandler) setLoggerFromReq(c fiber.Ctx) {

@@ -11,7 +11,7 @@ func (tah *TripAPIHandler) GetCompleted(c fiber.Ctx) error {
 	ctx := c.Context()
 	trips, err := tah.travalerService.GetCompleted(ctx)
 	if err != nil {
-		tah.logger.Error("api active trip error: %w", err)
+		tah.logger.Error("api active trip", "error:", err.Error())
 		return err
 	}
 	return c.Status(fiber.StatusOK).JSON(dto.ToDTOList(trips))

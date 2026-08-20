@@ -14,12 +14,12 @@ func (tah *TripAPIHandler) GetDetail(c fiber.Ctx) error {
 	if id, err := uuid.Parse(c.Params("trip_id")); err == nil {
 		tripID = id
 	} else {
-		tah.logger.Error("api GetDetail trip error: %w", err)
+		tah.logger.Error("api GetDetail trip", "error:", err.Error())
 		return err
 	}
 	trip, err := tah.travalerService.GetDetail(ctx, tripID)
 	if err != nil {
-		tah.logger.Error("api GetDetail trip error: %w", err)
+		tah.logger.Error("api GetDetail trip", "error:", err.Error())
 		return err
 	}
 	return c.Status(fiber.StatusOK).JSON(dto.ToDTO(trip))

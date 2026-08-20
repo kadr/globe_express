@@ -13,12 +13,12 @@ func (tah *TripAPIHandler) Cancel(c fiber.Ctx) error {
 	if id, err := uuid.Parse(c.Params("trip_id")); err == nil {
 		tripID = id
 	} else {
-		tah.logger.Error("api Cancel trip error: %w", err)
+		tah.logger.Error("api Cancel trip", "error:", err.Error())
 		return err
 	}
 	err := tah.travalerService.Cancel(ctx, tripID)
 	if err != nil {
-		tah.logger.Error("api Cancel trip error: %w", err)
+		tah.logger.Error("api Cancel trip", "error:", err.Error())
 		return err
 	}
 	c.Status(fiber.StatusNoContent)

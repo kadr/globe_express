@@ -1,4 +1,4 @@
-package order_api_product_service_interface
+package order_api_services_interface
 
 import (
 	"context"

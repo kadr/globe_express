@@ -14,22 +14,22 @@ func (pah *ProductAPIHandler) Update(c fiber.Ctx) error {
 	if id, err := uuid.Parse(c.Params("product_id")); err == nil {
 		productID = id
 	} else {
-		pah.logger.Error("api update product error: %w", err)
+		pah.logger.Error("api update product", "error:", err.Error())
 		return err
 	}
 	var updateDTO dto.UpdateDTO
 	err := c.Bind().Body(&updateDTO)
 	if err != nil {
-		pah.logger.Error("api update product error: %w", err)
+		pah.logger.Error("api update product", "error:", err.Error())
 		return err
 	}
 	if err != nil {
-		pah.logger.Error("api update product error: %w", err)
+		pah.logger.Error("api update product", "error:", err.Error())
 		return err
 	}
 	product, err := pah.productService.Update(ctx, productID, dto.ToUpdateModel(updateDTO))
 	if err != nil {
-		pah.logger.Error("api update product error: %w", err)
+		pah.logger.Error("api update product", "error:", err.Error())
 		return err
 	}
 	return c.Status(fiber.StatusOK).JSON(dto.ToDTO(product))
